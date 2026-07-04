@@ -801,16 +801,13 @@
           <input id="settingsSubtitle" type="text" onchange="data.subtitle=this.value;saveData();render()">
         </div>
         <div class="settings-field">
-          <label>页面宽度</label>
-          <select id="settingsWidth" onchange="data.pageWidth=this.value;saveData();applyPageWidth()" style="padding:10px 14px;border:1.5px solid var(--border-light);border-radius:12px;font-size:0.85rem;outline:none;background:var(--input-bg);color:var(--text);">
-            <option value="">自适应</option>
-            <option value="640">640px</option>
-            <option value="720">720px (默认)</option>
-            <option value="860">860px</option>
-            <option value="960">960px</option>
-            <option value="1100">1100px</option>
-            <option value="1280">1280px</option>
-          </select>
+          <label>页面宽度: <span id="widthValue" style="font-weight:600;">自适应</span></label>
+          <div style="display:flex;align-items:center;gap:12px;">
+            <input type="range" id="settingsWidth" min="0" max="1280" step="20" value="960"
+              oninput="applyWidthPreview(this.value)" onchange="data.pageWidth=this.value||'';saveData();applyPageWidth()"
+              style="flex:1;height:6px;-webkit-appearance:none;appearance:none;background:var(--accent);border-radius:4px;outline:none;cursor:pointer;">
+            <span style="font-size:0.75rem;color:var(--text-secondary);white-space:nowrap;min-width:60px;">0 = 自适应</span>
+          </div>
         </div>
       </div>
       <div id="panelSections" class="settings-panel">
@@ -1045,6 +1042,17 @@ function applyPageWidth() {
   }
 }
 
+// 宽度进度条预览（仅设置面板中实时显示）
+function applyWidthPreview(val) {
+  const label = document.getElementById('widthValue');
+  if (!label) return;
+  if (!val || val === '0') {
+    label.textContent = '自适应';
+  } else {
+    label.textContent = val + 'px';
+  }
+}
+
 function renderSVGIcon(name) {
   const svgs = {
     '百度': '<svg viewBox="0 0 24 24" width="18" height="18" fill="none"><rect width="24" height="24" rx="4" fill="#2932e1"/><path d="M7.5 8a1.5 1.5 0 100 3 1.5 1.5 0 000-3zm4-1a1.5 1.5 0 100 3 1.5 1.5 0 000-3zm4 0a1.5 1.5 0 100 3 1.5 1.5 0 000-3zm-6 5.5c0 2 2 3 4 3s4-1 4-3" stroke="#fff" stroke-width="1.2" fill="none"/></svg>',
@@ -1221,7 +1229,8 @@ function switchSettingsTab(panelId, btn) {
 function openSettings() {
   document.getElementById('settingsTitle').value = data.title;
   document.getElementById('settingsSubtitle').value = data.subtitle;
-  document.getElementById('settingsWidth').value = data.pageWidth || '';
+  document.getElementById('settingsWidth').value = data.pageWidth || '960';
+  applyWidthPreview(data.pageWidth || '0');
   document.querySelectorAll('.settings-tab').forEach((t, i) => t.classList.toggle('active', i === 0));
   document.querySelectorAll('.settings-panel').forEach((p, i) => p.classList.toggle('active', i === 0));
   renderSettingsSections();
