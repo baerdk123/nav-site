@@ -1,13 +1,9 @@
 # Decap CMS 后台配置
-# ★ 部署前请修改以下字段 ★
-
 backend:
   name: github
   repo: baerdk123/nav-site
   branch: main
   auth_type: github-pat
-  # ★ 重要：在 Cloudflare Pages 后台设置环境变量 GITHUB_TOKEN
-  #    构建时自动替换下方占位符
   token: GITHUB_TOKEN_PLACEHOLDER
 
 local_backend: false
@@ -32,21 +28,43 @@ collections:
         label: "书签数据库"
         file: "links.json"
         fields:
-          - name: "categories"
+          - name: "title"
+            label: "页面标题"
+            widget: "string"
+          - name: "subtitle"
+            label: "副标题"
+            widget: "string"
+          - name: "sections"
             label: "分类列表"
             label_singular: "分类"
             widget: "list"
             collapsed: false
             fields:
-              - { name: "name", label: "分类名称", widget: "string" }
-              - { name: "icon", label: "分类图标", widget: "string", hint: "如 🎬 📊 ⚙️" }
+              - name: "id"
+                label: "分类ID（英文唯一标识）"
+                widget: "string"
+              - name: "name"
+                label: "分类名称（可加 Emoji）"
+                widget: "string"
+              - name: "cssClass"
+                label: "CSS样式类（可选）"
+                widget: "string"
+                required: false
               - name: "links"
                 label: "链接列表"
                 label_singular: "链接"
                 widget: "list"
                 collapsed: false
                 fields:
-                  - { name: "title", label: "标题", widget: "string" }
+                  - { name: "emoji", label: "图标(Emoji)", widget: "string" }
+                  - { name: "name", label: "名称", widget: "string" }
                   - { name: "url", label: "网址", widget: "string" }
-                  - { name: "desc", label: "描述", widget: "string", required: false }
-                  - { name: "icon", label: "图标", widget: "string", required: false }
+          - name: "quickLinks"
+            label: "快速链接（顶部导航栏）"
+            label_singular: "链接"
+            widget: "list"
+            collapsed: false
+            fields:
+              - { name: "icon", label: "图标类型", widget: "string", default: "svg" }
+              - { name: "name", label: "名称", widget: "string" }
+              - { name: "url", label: "网址", widget: "string" }
