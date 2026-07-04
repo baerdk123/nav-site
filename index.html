@@ -828,6 +828,7 @@
 <div id="trashZone" class="trash-zone">🗑️ 拖到这里删除</div>
 
 <script>
+console.log('nav script loaded');
 const STORAGE_KEY = 'my_nav_data_v2';
 
 const DEFAULT_DATA = {
@@ -1059,6 +1060,7 @@ function renderSVGIcon(name) {
 }
 
 function render() {
+  console.log('rendering...', data.sections?.length, 'sections');
   document.getElementById('pageTitle').textContent = data.title;
   document.getElementById('pageSubtitle').textContent = data.subtitle;
   applyPageWidth();
