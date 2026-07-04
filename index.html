@@ -997,11 +997,12 @@ let cloudSyncPending = false;
 
 function cfKvApi(method, body) {
   const cfg = getCloudConfig();
-  const url = 'https://api.cloudflare.com/client/v4/accounts/' + cfg.accountId + '/storage/kv/namespaces/' + cfg.kvId + '/values/nav_bookmarks';
+  // 使用同域 Pages Function 代理（避免 CORS 限制）
+  const url = '/api/kv';
   return fetch(url, {
     method: method,
     headers: {
-      'Authorization': 'Bearer ' + cfg.token,
+      'X-Auth-Token': cfg.token,
       'Content-Type': 'application/json'
     },
     body: body || undefined
