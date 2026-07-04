@@ -729,7 +729,7 @@
     <div class="header-actions">
       <button class="btn-icon" id="themeBtn" onclick="toggleTheme()" title="切换主题">☀️</button>
       <button class="btn-icon" onclick="openNotepad()" title="记事本">📝</button>
-      <button class="btn-icon" id="loginBtn" onclick="openNotepad()" title="记事本">📝</button>
+      <button class="btn-icon" onclick="openSettings()" title="管理">⚙️</button>
     </div>
   </div>
 
@@ -777,6 +777,47 @@
 </div>
 
 <!-- ===== 设置弹窗 ===== -->
+<!-- ===== 设置弹窗 ===== -->
+<div id="settingsOverlay" class="modal-overlay" onclick="closeSettings(event)">
+  <div class="settings-modal" onclick="event.stopPropagation()">
+    <div class="settings-header">
+      <h2>⚙️ 管理</h2>
+    </div>
+    <div class="settings-tabs">
+      <button class="settings-tab active" onclick="switchSettingsTab('general',this)">📐 基本</button>
+      <button class="settings-tab" onclick="switchSettingsTab('sections',this)">📂 分类</button>
+      <button class="settings-tab" onclick="switchSettingsTab('quick',this)">⚡ 快速链接</button>
+    </div>
+    <div class="settings-body">
+      <div id="panelGeneral" class="settings-panel active">
+        <div class="settings-field">
+          <label>页面标题</label>
+          <input id="settingsTitle" type="text" onchange="data.title=this.value">
+        </div>
+        <div class="settings-field">
+          <label>副标题</label>
+          <input id="settingsSubtitle" type="text" onchange="data.subtitle=this.value">
+        </div>
+      </div>
+      <div id="panelSections" class="settings-panel">
+        <div class="section-actions">
+          <button class="btn-icon" onclick="addSection()" style="width:auto;border-radius:12px;padding:6px 16px;gap:5px;">＋ 添加分类</button>
+        </div>
+        <div id="settingsSectionList"></div>
+      </div>
+      <div id="panelQuick" class="settings-panel">
+        <div class="section-actions">
+          <button class="btn-add-link" onclick="showAddModal('quick')" style="font-size:0.8rem;padding:5px 16px;">＋ 添加快速链接</button>
+        </div>
+        <div id="settingsQuickLinks"></div>
+      </div>
+    </div>
+    <div class="settings-foot">
+      <button class="btn-cancel" onclick="closeSettings()">关闭</button>
+    </div>
+  </div>
+</div>
+
 <!-- ===== 右键菜单 ===== -->
 <div id="ctxMenu" class="ctx-menu"></div>
 
@@ -1150,6 +1191,122 @@ function confirmModal() {
   saveData();
   render();
   closeModal();
+}
+
+// ===== 设置 =====
+function switchSettingsTab(panelId, btn) {
+  document.querySelectorAll('.settings-tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.settings-panel').forEach(p => p.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('panel' + panelId.charAt(0).toUpperCase() + panelId.slice(1)).classList.add('active');
+  if (panelId === 'sections') renderSettingsSections();
+  if (panelId === 'quick') renderSettingsQuick();
+}
+
+function openSettings() {
+  document.getElementById('settingsTitle').value = data.title;
+  document.getElementById('settingsSubtitle').value = data.subtitle;
+  document.querySelectorAll('.settings-tab').forEach((t, i) => t.classList.toggle('active', i === 0));
+  document.querySelectorAll('.settings-panel').forEach((p, i) => p.classList.toggle('active', i === 0));
+  renderSettingsSections();
+  renderSettingsQuick();
+  document.getElementById('settingsOverlay').classList.add('show');
+}
+
+function closeSettings(ev) {
+  if (ev && ev.target !== document.getElementById('settingsOverlay')) return;
+  document.getElementById('settingsOverlay').classList.remove('show');
+}
+
+function renderSettingsSections() {
+  const list = document.getElementById('settingsSectionList');
+  list.innerHTML = data.sections.map((s, i) => `
+    <div class="settings-item">
+      <button class="s-btn" onclick="moveSection(${i},-1)" style="font-size:0.75rem;padding:2px 8px;" ${i===0?'disabled':''}>▲</button>
+      <button class="s-btn" onclick="moveSection(${i},1)" style="font-size:0.75rem;padding:2px 8px;" ${i===data.sections.length-1?'disabled':''}>▼</button>
+      <span class="s-name">${s.name}</span>
+      <button class="s-btn" onclick="renameSection(${i})">✏️</button>
+      <button class="s-btn del" onclick="deleteSection(${i})">🗑️</button>
+    </div>
+  `).join('');
+  list.innerHTML += `
+    <div style="margin-top:16px;padding-top:16px;border-top:1.5px solid var(--divider);">
+      <div style="display:flex;gap:8px;flex-wrap:wrap;">
+        <button class="btn-icon" onclick="exportData()" style="width:auto;border-radius:12px;padding:8px 16px;gap:5px;font-size:0.8rem;">📤 导出数据</button>
+        <button class="btn-icon" onclick="importData()" style="width:auto;border-radius:12px;padding:8px 16px;gap:5px;font-size:0.8rem;">📥 导入数据</button>
+        <button class="btn-icon" onclick="fetchAllIcons()" style="width:auto;border-radius:12px;padding:8px 16px;gap:5px;font-size:0.8rem;background:linear-gradient(135deg,var(--accent),#4a5ae0);color:#fff;border:none;">🔄 获取图标</button>
+        <button class="btn-icon" onclick="backupToCloud()" style="width:auto;border-radius:12px;padding:8px 16px;gap:5px;font-size:0.8rem;">☁️ 云端备份</button>
+        <button class="btn-icon" onclick="restoreFromCloud()" style="width:auto;border-radius:12px;padding:8px 16px;gap:5px;font-size:0.8rem;">⬇️ 云端恢复</button>
+      </div>
+    </div>
+  `;
+}
+
+function moveSection(idx, dir) {
+  const newIdx = idx + dir;
+  if (newIdx < 0 || newIdx >= data.sections.length) return;
+  const item = data.sections.splice(idx, 1)[0];
+  data.sections.splice(newIdx, 0, item);
+  saveData(); render(); renderSettingsSections();
+}
+
+function renderSettingsQuick() {
+  const list = document.getElementById('settingsQuickLinks');
+  list.innerHTML = data.quickLinks.map((l, i) => `
+    <div class="settings-item">
+      <span class="s-icon">${l.icon}</span>
+      <span class="s-name">${l.name}</span>
+      <a class="s-url" href="${l.url}" target="_blank">${l.url}</a>
+      <button class="s-btn" onclick="editQuickLink(${i})">✏️</button>
+      <button class="s-btn del" onclick="deleteQuickLink(${i})">🗑️</button>
+    </div>
+  `).join('');
+  list.innerHTML += `
+    <div style="margin-top:16px;padding-top:16px;border-top:1.5px solid var(--divider);">
+      <div style="display:flex;gap:8px;flex-wrap:wrap;">
+        <button class="btn-icon" onclick="exportData()" style="width:auto;border-radius:12px;padding:8px 16px;gap:5px;font-size:0.8rem;">📤 导出数据</button>
+        <button class="btn-icon" onclick="importData()" style="width:auto;border-radius:12px;padding:8px 16px;gap:5px;font-size:0.8rem;">📥 导入数据</button>
+        <button class="btn-icon" onclick="fetchAllIcons()" style="width:auto;border-radius:12px;padding:8px 16px;gap:5px;font-size:0.8rem;background:linear-gradient(135deg,var(--accent),#4a5ae0);color:#fff;border:none;">🔄 获取图标</button>
+        <button class="btn-icon" onclick="backupToCloud()" style="width:auto;border-radius:12px;padding:8px 16px;gap:5px;font-size:0.8rem;">☁️ 云端备份</button>
+        <button class="btn-icon" onclick="restoreFromCloud()" style="width:auto;border-radius:12px;padding:8px 16px;gap:5px;font-size:0.8rem;">⬇️ 云端恢复</button>
+      </div>
+    </div>
+  `;
+}
+
+function renameSection(idx) {
+  const newName = prompt('新分类名称：', data.sections[idx].name);
+  if (newName && newName.trim()) data.sections[idx].name = newName.trim();
+  renderSettingsSections();
+}
+
+function deleteSection(idx) {
+  if (!confirm(`确定删除「${data.sections[idx].name}」？`)) return;
+  data.sections.splice(idx, 1);
+  saveData(); render(); renderSettingsSections();
+}
+
+function addSection() {
+  const name = prompt('新分类名称（可加 Emoji）：');
+  if (!name || !name.trim()) return;
+  const id = 'sec_' + Date.now();
+  data.sections.push({ id, name: name.trim(), cssClass: '', links: [] });
+  renderSettingsSections();
+}
+
+function editQuickLink(idx) {
+  const l = data.quickLinks[idx];
+  const icon = prompt('图标', l.icon); if (!icon) return;
+  const name = prompt('名称', l.name); if (!name) return;
+  const url = prompt('网址', l.url); if (!url) return;
+  data.quickLinks[idx] = { icon: 'svg', name: name.trim(), url: url.trim() };
+  saveData(); render(); renderSettingsQuick();
+}
+
+function deleteQuickLink(idx) {
+  if (!confirm(`确定删除「${data.quickLinks[idx].name}」？`)) return;
+  data.quickLinks.splice(idx, 1);
+  saveData(); render(); renderSettingsQuick();
 }
 
 // ===== 右键菜单处理 =====
