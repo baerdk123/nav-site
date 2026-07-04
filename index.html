@@ -966,14 +966,14 @@ const CLOUD_CONFIG_KEY = 'nav_cloud_config';
 function getCloudConfig() {
   try {
     return JSON.parse(localStorage.getItem(CLOUD_CONFIG_KEY)) || {
-      token: 'cfut_NeRHERQDsjsGFLsYWWqpb4QXpPCtPYPuzv0KsIHOe3f932c3',
-      accountId: '53f8bc314242b1fefda3e51f0d284ebf',
-      kvId: 'bd780c429b664300a3ae5c32b62a084d'
+      token: '',
+      accountId: '',
+      kvId: ''
     };
   } catch(e) { return {
-    token: 'cfut_NeRHERQDsjsGFLsYWWqpb4QXpPCtPYPuzv0KsIHOe3f932c3',
-    accountId: '53f8bc314242b1fefda3e51f0d284ebf',
-    kvId: 'bd780c429b664300a3ae5c32b62a084d'
+    token: '',
+    accountId: '',
+    kvId: ''
   }; }
 }
 
