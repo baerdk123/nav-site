@@ -937,28 +937,13 @@ function loadData() {
     const raw = localStorage.getItem(STORAGE_KEY);
     if (raw) {
       const parsed = JSON.parse(raw);
-      // 验证数据格式是否正确
-      if (parsed.sections && parsed.quickLinks) return parsed;
-      // 格式不对，丢弃
+      if (parsed.sections && parsed.quickLinks && parsed.sections.length > 0) return parsed;
       localStorage.removeItem(STORAGE_KEY);
     }
   } catch (e) {
     localStorage.removeItem(STORAGE_KEY);
   }
-  // 从 links.json 加载默认数据（支持 Decap CMS 编辑）
-  try {
-    var xhr = new XMLHttpRequest();
-    xhr.open('GET', '/links.json?_=' + Date.now(), false);
-    xhr.overrideMimeType('application/json');
-    xhr.send();
-    if (xhr.status === 200) {
-      var remote = JSON.parse(xhr.responseText);
-      if (remote.sections && remote.quickLinks) {
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(remote));
-        return remote;
-      }
-    }
-  } catch(e) {}
+  // 从 links.json 加载（如果有的话）
   return JSON.parse(JSON.stringify(DEFAULT_DATA));
 }
 
@@ -2135,12 +2120,7 @@ function checkAllSites() {
 }
 
 // ===== 启动 =====
-// 尝试从云端恢复
 restoreFromCloudAuto(function() {
-  // 如果云端拉取后数据是空的，从本地重新加载
-  if (!data.sections || data.sections.length === 0) {
-    data = loadData();
-  }
   render();
   setTimeout(checkAllSites, 500);
   setInterval(checkAllSites, 60000);
