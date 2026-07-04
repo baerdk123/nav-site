@@ -790,15 +790,15 @@
       <div id="panelGeneral" class="settings-panel active">
         <div class="settings-field">
           <label>页面标题</label>
-          <input id="settingsTitle" type="text" onchange="data.title=this.value">
+          <input id="settingsTitle" type="text" onchange="data.title=this.value;saveData();render()">
         </div>
         <div class="settings-field">
           <label>副标题</label>
-          <input id="settingsSubtitle" type="text" onchange="data.subtitle=this.value">
+          <input id="settingsSubtitle" type="text" onchange="data.subtitle=this.value;saveData();render()">
         </div>
         <div class="settings-field">
           <label>页面宽度 (px)</label>
-          <input id="settingsWidth" type="number" placeholder="720" onchange="data.pageWidth=this.value;applyPageWidth()" style="width:120px;">
+          <input id="settingsWidth" type="number" placeholder="720" onchange="data.pageWidth=this.value;saveData();applyPageWidth()" style="width:120px;">
         </div>
       </div>
       <div id="panelSections" class="settings-panel">
