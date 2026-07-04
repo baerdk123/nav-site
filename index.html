@@ -729,10 +729,7 @@
     <div class="header-actions">
       <button class="btn-icon" id="themeBtn" onclick="toggleTheme()" title="切换主题">☀️</button>
       <button class="btn-icon" onclick="openNotepad()" title="记事本">📝</button>
-      <button class="btn-icon" id="loginBtn" onclick="isAuthenticated?logout():login()" title="点击登录">🔒</button>
-      <button class="btn-icon" onclick="showAddModal('quick')" title="添加快速链接">＋</button>
-      <button class="btn-icon" onclick="openSettings()" title="管理">⚙️</button>
-      <button class="btn-icon" id="syncBtn" onclick="syncNow()" title="手动同步到云端" style="font-size:0.85rem;">☁️</button>
+      <button class="btn-icon" id="loginBtn" onclick="openNotepad()" title="记事本">📝</button>
     </div>
   </div>
 
@@ -780,57 +777,6 @@
 </div>
 
 <!-- ===== 设置弹窗 ===== -->
-<div id="settingsOverlay" class="modal-overlay" onclick="closeSettings(event)">
-  <div class="settings-modal" onclick="event.stopPropagation()">
-    <div class="settings-header">
-      <h2>⚙️ 管理</h2>
-    </div>
-    <div class="settings-tabs">
-      <button class="settings-tab active" onclick="switchSettingsTab('general',this)">📐 基本</button>
-      <button class="settings-tab" onclick="switchSettingsTab('sections',this)">📂 分类</button>
-      <button class="settings-tab" onclick="switchSettingsTab('quick',this)">⚡ 快速链接</button>
-    </div>
-    <div class="settings-body">
-      <div id="panelGeneral" class="settings-panel active">
-        <div class="settings-field">
-          <label>页面标题</label>
-          <input id="settingsTitle" type="text" onchange="data.title=this.value">
-        </div>
-        <div class="settings-field">
-          <label>副标题</label>
-          <input id="settingsSubtitle" type="text" onchange="data.subtitle=this.value">
-        </div>
-        <div style="margin-top:20px;padding-top:16px;border-top:1.5px solid var(--divider);">
-          <label style="display:block;font-size:0.78rem;font-weight:600;color:var(--text-secondary);margin-bottom:8px;">🔑 修改密码</label>
-          <div style="display:flex;flex-direction:column;gap:8px;">
-            <input type="password" id="oldPwdInput" placeholder="当前密码" style="width:100%;padding:10px 14px;border:1.5px solid var(--border-light);border-radius:12px;font-size:0.85rem;outline:none;background:var(--input-bg);color:var(--text);">
-            <input type="password" id="newPwdInput" placeholder="新密码" style="width:100%;padding:10px 14px;border:1.5px solid var(--border-light);border-radius:12px;font-size:0.85rem;outline:none;background:var(--input-bg);color:var(--text);">
-            <input type="password" id="confirmPwdInput" placeholder="确认新密码" style="width:100%;padding:10px 14px;border:1.5px solid var(--border-light);border-radius:12px;font-size:0.85rem;outline:none;background:var(--input-bg);color:var(--text);">
-            <div id="pwdChangeMsg" style="font-size:0.8rem;min-height:20px;color:#ef4444;"></div>
-            <button class="btn-icon" onclick="changePasswordInline()" style="width:auto;border-radius:12px;padding:8px 20px;gap:5px;font-size:0.82rem;background:var(--accent);color:#fff;border:none;font-weight:600;">确认修改</button>
-          </div>
-        </div>
-      </div>
-      <div id="panelSections" class="settings-panel">
-        <div class="section-actions">
-          <button class="btn-icon" onclick="addSection()" style="width:auto;border-radius:12px;padding:6px 16px;gap:5px;">＋ 添加分类</button>
-        </div>
-        <div id="settingsSectionList"></div>
-      </div>
-      <div id="panelQuick" class="settings-panel">
-        <div class="section-actions">
-          <button class="btn-add-link" onclick="showAddModal('quick')" style="font-size:0.8rem;padding:5px 16px;">＋ 添加快速链接</button>
-        </div>
-        <div id="settingsQuickLinks"></div>
-      </div>
-    </div>
-    <div class="settings-foot">
-      <button class="btn-cancel" onclick="closeSettings()">取消</button>
-      <button class="btn-confirm" onclick="closeSettings();saveAll()">保存</button>
-    </div>
-  </div>
-</div>
-
 <!-- ===== 右键菜单 ===== -->
 <div id="ctxMenu" class="ctx-menu"></div>
 
@@ -1011,17 +957,21 @@ function cfKvApi(method, body) {
 
 function syncDataToCloud() {
   const config = getCloudConfig();
-  if (!config.token || !config.accountId || !config.kvId) return;
+  if (!config.token) return;
   if (cloudSyncTimer) clearTimeout(cloudSyncTimer);
   cloudSyncTimer = setTimeout(function() {
-    cfKvApi('PUT', JSON.stringify(data));
+    cfKvApi('PUT', JSON.stringify(data)).then(function(r) {
+      if (r.success) showCloudStatus('☁️');
+      else showCloudStatus('⚠️');
+    }).catch(function() {});
     cloudSyncTimer = null;
-  }, 2000);
+  }, 1500);
 }
 
 function restoreFromCloudAuto(callback) {
   const config = getCloudConfig();
-  if (!config.token || !config.accountId || !config.kvId) { if(callback) callback(); return; }
+  if (!config.token) { if(callback) callback(); return; }
+  showCloudStatus('☁️');
   cfKvApi('GET').then(function(resp) {
     if (resp.success && resp.result !== null) {
       var cloudData = resp.result;
@@ -1029,53 +979,11 @@ function restoreFromCloudAuto(callback) {
       if (cloudData.sections && cloudData.quickLinks) {
         data = cloudData;
         localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+        showCloudStatus('☁️');
       }
     }
     if(callback) callback();
   }).catch(function(){ if(callback) callback(); });
-}
-
-function setupCloudSync() {
-  const cfg = getCloudConfig();
-  showCloudStatus('☁️ 已有云端配置，正在拉取...');
-  cfKvApi('GET').then(function(resp) {
-    if (resp.success && resp.result !== null) {
-      var cloudData = resp.result;
-      if (typeof cloudData === 'string') cloudData = JSON.parse(cloudData);
-      if (cloudData.sections && cloudData.quickLinks) {
-        data = cloudData;
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
-        render();
-        showCloudStatus('✅ 从云端拉取成功');
-      } else {
-        showCloudStatus('⚠️ 云端数据格式有误');
-      }
-    } else {
-      // 首次使用，推送本地数据
-      cfKvApi('PUT', JSON.stringify(data)).then(function(r) {
-        showCloudStatus(r.success ? '✅ 已推送至云端' : '❌ 推送失败');
-      });
-    }
-  }).catch(function() { showCloudStatus('❌ 云端连接失败'); });
-}
-
-// 手动同步按钮
-function syncNow() {
-  const btn = document.getElementById('syncBtn');
-  btn.textContent = '⏳';
-  showCloudStatus('☁️ 正在同步...');
-  cfKvApi('PUT', JSON.stringify(data)).then(function(r) {
-    if (r.success) {
-      showCloudStatus('✅ 同步成功 ' + new Date().toLocaleTimeString());
-      btn.textContent = '☁️';
-    } else {
-      showCloudStatus('❌ 同步失败');
-      btn.textContent = '☁️';
-    }
-  }).catch(function() {
-    showCloudStatus('❌ 网络错误');
-    btn.textContent = '☁️';
-  });
 }
 
 function saveData() {
@@ -1244,144 +1152,7 @@ function confirmModal() {
   closeModal();
 }
 
-// ===== 设置 =====
-function switchSettingsTab(panelId, btn) {
-  document.querySelectorAll('.settings-tab').forEach(t => t.classList.remove('active'));
-  document.querySelectorAll('.settings-panel').forEach(p => p.classList.remove('active'));
-  btn.classList.add('active');
-  document.getElementById('panel' + panelId.charAt(0).toUpperCase() + panelId.slice(1)).classList.add('active');
-  if (panelId === 'sections') renderSettingsSections();
-  if (panelId === 'quick') renderSettingsQuick();
-}
-
-function openSettings() {
-  checkAuth(function() {
-  document.getElementById('settingsTitle').value = data.title;
-  document.getElementById('settingsSubtitle').value = data.subtitle;
-  document.querySelectorAll('.settings-tab').forEach((t, i) => t.classList.toggle('active', i === 0));
-  document.querySelectorAll('.settings-panel').forEach((p, i) => p.classList.toggle('active', i === 0));
-  renderSettingsSections();
-  renderSettingsQuick();
-  document.getElementById('settingsOverlay').classList.add('show');
-  });
-}
-
-function closeSettings(ev) {
-  if (ev && ev.target !== document.getElementById('settingsOverlay')) return;
-  document.getElementById('settingsOverlay').classList.remove('show');
-}
-
-function renderSettingsSections() {
-  const list = document.getElementById('settingsSectionList');
-  list.innerHTML = data.sections.map((s, i) => `
-    <div class="settings-item">
-      <button class="s-btn" onclick="moveSection(${i},-1)" style="font-size:0.75rem;padding:2px 8px;" ${i===0?'disabled':''}>▲</button>
-      <button class="s-btn" onclick="moveSection(${i},1)" style="font-size:0.75rem;padding:2px 8px;" ${i===data.sections.length-1?'disabled':''}>▼</button>
-      <span class="s-name">${s.name}</span>
-      <input type="text" value="${s.cssClass || ''}" placeholder="class" style="width:90px;padding:4px 8px;border:1px solid #e6e3ef;border-radius:8px;font-size:0.75rem;" onchange="data.sections[${i}].cssClass=this.value">
-      <button class="s-btn" onclick="renameSection(${i})">✏️</button>
-      <button class="s-btn del" onclick="deleteSection(${i})">🗑️</button>
-    </div>
-  `).join('');
-  list.innerHTML += `
-    <div style="margin-top:16px;padding-top:16px;border-top:1.5px solid var(--divider);">
-      <div style="display:flex;gap:8px;flex-wrap:wrap;">
-        <button class="btn-icon" onclick="exportData()" style="width:auto;border-radius:12px;padding:8px 16px;gap:5px;font-size:0.8rem;">📤 导出数据</button>
-        <button class="btn-icon" onclick="importData()" style="width:auto;border-radius:12px;padding:8px 16px;gap:5px;font-size:0.8rem;">📥 导入数据</button>
-        <button class="btn-icon" onclick="fetchAllIcons()" style="width:auto;border-radius:12px;padding:8px 16px;gap:5px;font-size:0.8rem;background:linear-gradient(135deg,var(--accent),#4a5ae0);color:#fff;border:none;">🔄 获取图标</button>
-        <button class="btn-icon" onclick="setupCloudSync()" style="width:auto;border-radius:12px;padding:8px 16px;gap:5px;font-size:0.8rem;background:linear-gradient(135deg,#34c759,#28a745);color:#fff;border:none;">🔄 自动同步</button>
-        <button class="btn-icon" onclick="backupToCloud()" style="width:auto;border-radius:12px;padding:8px 16px;gap:5px;font-size:0.8rem;">☁️ 云端备份</button>
-        <button class="btn-icon" onclick="restoreFromCloud()" style="width:auto;border-radius:12px;padding:8px 16px;gap:5px;font-size:0.8rem;">⬇️ 云端恢复</button>
-      </div>
-    </div>
-  `;
-}
-
-function moveSection(idx, dir) {
-  const newIdx = idx + dir;
-  if (newIdx < 0 || newIdx >= data.sections.length) return;
-  const item = data.sections.splice(idx, 1)[0];
-  data.sections.splice(newIdx, 0, item);
-  saveData(); render(); renderSettingsSections();
-}
-
-function renderSettingsQuick() {
-  const list = document.getElementById('settingsQuickLinks');
-  list.innerHTML = data.quickLinks.map((l, i) => `
-    <div class="settings-item">
-      <span class="s-icon">${l.icon}</span>
-      <span class="s-name">${l.name}</span>
-      <a class="s-url" href="${l.url}" target="_blank">${l.url}</a>
-      <button class="s-btn" onclick="editQuickLink(${i})">✏️</button>
-      <button class="s-btn del" onclick="deleteQuickLink(${i})">🗑️</button>
-    </div>
-  `).join('');
-  list.innerHTML += `
-    <div style="margin-top:16px;padding-top:16px;border-top:1.5px solid var(--divider);">
-      <div style="display:flex;gap:8px;flex-wrap:wrap;">
-        <button class="btn-icon" onclick="exportData()" style="width:auto;border-radius:12px;padding:8px 16px;gap:5px;font-size:0.8rem;">📤 导出数据</button>
-        <button class="btn-icon" onclick="importData()" style="width:auto;border-radius:12px;padding:8px 16px;gap:5px;font-size:0.8rem;">📥 导入数据</button>
-        <button class="btn-icon" onclick="fetchAllIcons()" style="width:auto;border-radius:12px;padding:8px 16px;gap:5px;font-size:0.8rem;background:linear-gradient(135deg,var(--accent),#4a5ae0);color:#fff;border:none;">🔄 获取图标</button>
-        <button class="btn-icon" onclick="setupCloudSync()" style="width:auto;border-radius:12px;padding:8px 16px;gap:5px;font-size:0.8rem;background:linear-gradient(135deg,#34c759,#28a745);color:#fff;border:none;">🔄 自动同步</button>
-        <button class="btn-icon" onclick="backupToCloud()" style="width:auto;border-radius:12px;padding:8px 16px;gap:5px;font-size:0.8rem;">☁️ 云端备份</button>
-        <button class="btn-icon" onclick="restoreFromCloud()" style="width:auto;border-radius:12px;padding:8px 16px;gap:5px;font-size:0.8rem;">⬇️ 云端恢复</button>
-      </div>
-    </div>
-  `;
-}
-
-function renameSection(idx) {
-  const newName = prompt('新分类名称：', data.sections[idx].name);
-  if (newName && newName.trim()) data.sections[idx].name = newName.trim();
-  renderSettingsSections();
-}
-
-function deleteSection(idx) {
-  if (!confirm(`确定删除「${data.sections[idx].name}」？`)) return;
-  data.sections.splice(idx, 1);
-  renderSettingsSections();
-}
-
-function addSection() {
-  const name = prompt('新分类名称（可加 Emoji）：');
-  if (!name || !name.trim()) return;
-  const id = 'sec_' + Date.now();
-  data.sections.push({ id, name: name.trim(), cssClass: '', links: [] });
-  renderSettingsSections();
-}
-
-function editQuickLink(idx) {
-  const l = data.quickLinks[idx];
-  const icon = prompt('图标', l.icon); if (!icon) return;
-  const name = prompt('名称', l.name); if (!name) return;
-  const url = prompt('网址', l.url); if (!url) return;
-  data.quickLinks[idx] = { icon: 'svg', name: name.trim(), url: url.trim() };
-  renderSettingsQuick();
-}
-
-function deleteQuickLink(idx) {
-  if (!confirm(`确定删除「${data.quickLinks[idx].name}」？`)) return;
-  data.quickLinks.splice(idx, 1);
-  renderSettingsQuick();
-}
-
-
-
-function checkAuth(fn) {
-  if (isAuthenticated) { fn(); return; }
-  const pwd = prompt('请输入管理员密码：');
-  if (pwd === ADMIN_PASSWORD) {
-    isAuthenticated = true;
-    fn();
-  } else {
-    alert('密码错误');
-  }
-}
-
-function saveAll() {
-  saveData();
-  render();
-}
+// ===== 右键菜单处理 =====
 
 // ===== 搜索引擎切换 =====
 (function(){
@@ -1446,12 +1217,6 @@ let ctxTarget = null;
 
 document.addEventListener('contextmenu', function(e) {
   e.preventDefault();
-  // Check auth for context menu
-  if (!isAuthenticated) {
-    const pwd = prompt('请输入管理员密码：');
-    if (pwd !== ADMIN_PASSWORD) return;
-    isAuthenticated = true;
-  }
   ctxTarget = null;
   closeCtxMenu();
 
@@ -1802,77 +1567,7 @@ document.addEventListener('drop', function(e) {
 });
 
 
-// ===== 密码登录系统 =====
-const ADMIN_PASSWORD_KEY = 'nav_admin_password';
-let ADMIN_PASSWORD = localStorage.getItem(ADMIN_PASSWORD_KEY) || '8587';
-let isAuthenticated = false;
-let pwdCallback = null;
-
-function checkAuth(fn) {
-  if (isAuthenticated) { fn(); return; }
-  pwdCallback = fn;
-  document.getElementById('pwdTitle').textContent = '🔒 请输入管理员密码';
-  document.getElementById('pwdInput').value = '';
-  document.getElementById('pwdError').style.opacity = '0';
-  document.getElementById('pwdInput').style.borderColor = 'var(--border-light)';
-  document.getElementById('pwdOverlay').classList.add('show');
-  setTimeout(() => document.getElementById('pwdInput').focus(), 100);
-}
-
-function submitPwd() {
-  const pwd = document.getElementById('pwdInput').value;
-  if (pwd === ADMIN_PASSWORD) {
-    isAuthenticated = true;
-    localStorage.setItem('nav_auth_session', '1');
-    const btn = document.getElementById('loginBtn');
-    if (btn) { btn.textContent = '🔓'; btn.title = '已登录'; }
-    document.getElementById('pwdOverlay').classList.remove('show');
-    if (pwdCallback) { pwdCallback(); pwdCallback = null; }
-  } else {
-    document.getElementById('pwdInput').style.borderColor = '#ef4444';
-    document.getElementById('pwdError').style.opacity = '1';
-    document.getElementById('pwdInput').value = '';
-    document.getElementById('pwdInput').focus();
-  }
-}
-
-function closePwdModal(ev) {
-  if (ev && ev.target !== document.getElementById('pwdOverlay')) return;
-  document.getElementById('pwdOverlay').classList.remove('show');
-  document.getElementById('pwdError').style.opacity = '0';
-  document.getElementById('pwdInput').style.borderColor = 'var(--border-light)';
-  pwdCallback = null;
-}
-
-function login() { checkAuth(function(){}); }
-
-function logout() {
-  isAuthenticated = false;
-  localStorage.removeItem('nav_auth_session');
-  document.getElementById('loginBtn').textContent = '🔒';
-  document.getElementById('loginBtn').title = '点击登录';
-}
-
-function changePasswordInline() {
-  const old = document.getElementById('oldPwdInput').value;
-  const n1 = document.getElementById('newPwdInput').value;
-  const n2 = document.getElementById('confirmPwdInput').value;
-  const msg = document.getElementById('pwdChangeMsg');
-  if (old !== ADMIN_PASSWORD) { msg.textContent = '❌ 当前密码错误'; showToast('当前密码错误','error'); document.getElementById('oldPwdInput').style.borderColor = '#ef4444'; return; }
-  if (!n1) { msg.textContent = '❌ 请输入新密码'; showToast('请输入新密码','error'); document.getElementById('newPwdInput').style.borderColor = '#ef4444'; return; }
-  if (n1 !== n2) { msg.textContent = '❌ 两次输入不一致'; showToast('两次输入不一致','error'); document.getElementById('confirmPwdInput').style.borderColor = '#ef4444'; return; }
-  ADMIN_PASSWORD = n1;
-  localStorage.setItem(ADMIN_PASSWORD_KEY, n1);
-  msg.textContent = '✅ 密码修改成功！';
-  showToast('✅ 密码修改成功','success');
-  document.getElementById('oldPwdInput').value = '';
-  document.getElementById('newPwdInput').value = '';
-  document.getElementById('confirmPwdInput').value = '';
-  document.getElementById('oldPwdInput').style.borderColor = '';
-  document.getElementById('newPwdInput').style.borderColor = '';
-  document.getElementById('confirmPwdInput').style.borderColor = '';
-  setTimeout(() => { msg.textContent = ''; }, 3000);
-}
+})
 
 // Toast 提示
 function showToast(text, type) {
@@ -1882,13 +1577,6 @@ function showToast(text, type) {
   t.textContent = text;
   document.body.appendChild(t);
   setTimeout(() => { t.style.opacity = '0'; t.style.transition = 'opacity 0.3s'; setTimeout(() => t.remove(), 300); }, 2000);
-}
-
-// 恢复登录状态
-if (localStorage.getItem('nav_auth_session') === '1') {
-  isAuthenticated = true;
-  const btn = document.getElementById('loginBtn');
-  if (btn) { btn.textContent = '🔓'; btn.title = '已登录'; }
 }
 
 
@@ -1937,11 +1625,12 @@ document.addEventListener('click', function(e) {
   const secData = data.sections[si];
   if (!secData) return;
   if (secData.password && section.classList.contains('locked')) {
-    if (isAuthenticated) {
+    if (false) {
       section.classList.remove('locked');
       section.classList.toggle('collapsed');
     } else {
-      checkAuth(function() { section.classList.remove('locked'); section.classList.toggle('collapsed'); });
+      section.classList.remove('locked');
+      section.classList.toggle('collapsed');
     }
     return;
   }
@@ -2104,7 +1793,6 @@ function fetchAllIcons() {
 
 // ===== 云端备份（GitHub Gist）=====
 function backupToCloud() {
-  checkAuth(function() {
     const token2 = prompt('请输入 GitHub Token（需要 gist 权限）：');
     if (!token2) return;
     const json = JSON.stringify(data, null, 2);
@@ -2127,7 +1815,6 @@ function backupToCloud() {
 }
 
 function restoreFromCloud() {
-  checkAuth(function() {
     const token2 = prompt('请输入 GitHub Token：');
     if (!token2) return;
     const gistUrl = localStorage.getItem('nav_gist_url');
@@ -2210,7 +1897,7 @@ function setupNotepadGist() {
 }
 
 function openNotepad() {
-  if (!isAuthenticated) { checkAuth(function(){ _openNotepad(); }); } else { _openNotepad(); }
+  _openNotepad();
 }
 function _openNotepad() {
   // 尝试从 Gist 加载最新内容
@@ -2229,7 +1916,7 @@ function closeNotepad(ev) {
 function saveNotepad() { localStorage.setItem(NOTEPAD_KEY, document.getElementById('notepadContent').value); updateNotepadWordCount(); saveNotepadToGist(); showToast('已保存','success'); }
 function updateNotepadWordCount() { document.getElementById('notepadWordCount').textContent = document.getElementById('notepadContent').value.length + ' 字'; }
 function setupNotepadSync() {
-  if (!isAuthenticated) { checkAuth(function(){ setupNotepadGist(); }); } else { setupNotepadGist(); }
+    setupNotepadGist();
 }
 
 function exportNotepad() {
@@ -2315,20 +2002,6 @@ document.getElementById('pageTitle').ondblclick = function(e) {
 </script>
 
 <!-- ===== 密码输入弹窗 ===== -->
-<div id="pwdOverlay" class="modal-overlay" onclick="closePwdModal(event)">
-  <div class="modal" onclick="event.stopPropagation()" style="max-width:360px;text-align:center;">
-    <h2 id="pwdTitle" style="font-size:1.1rem;margin-bottom:16px;color:var(--text);font-weight:650;">🔒 请输入管理员密码</h2>
-    <input type="password" id="pwdInput" placeholder="输入密码"
-      style="width:100%;padding:12px 16px;border:2px solid var(--border-light);border-radius:14px;font-size:1rem;outline:none;background:var(--input-bg);color:var(--text);text-align:center;transition:border-color 0.2s;"
-      onkeydown="if(event.key==='Enter')submitPwd()" oninput="this.style.borderColor='var(--border-light)'">
-    <div id="pwdError" style="font-size:0.8rem;color:#ef4444;margin-top:8px;min-height:20px;opacity:0;transition:opacity 0.2s;">密码错误</div>
-    <div class="modal-actions" style="justify-content:center;margin-top:16px;">
-      <button class="btn-cancel" onclick="closePwdModal()">取消</button>
-      <button class="btn-confirm" onclick="submitPwd()">确定</button>
-    </div>
-  </div>
-</div>
-
 <!-- ===== 记事本弹窗 ===== -->
 <div id="notepadOverlay" class="modal-overlay" onclick="closeNotepad(event)">
   <div class="modal" onclick="event.stopPropagation()" style="max-width:600px;">
