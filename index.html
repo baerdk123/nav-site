@@ -722,13 +722,17 @@
   <div class="header">
     <h1 id="pageTitle">🌈 我的导航</h1>
     <p id="pageSubtitle">常用网址 · 一键直达</p>
-    <div style="font-size:0.78rem;color:var(--text-secondary);margin-top:6px;font-variant-numeric:tabular-nums;" id="clockDisplay"></div>
+    <div style="font-size:0.78rem;color:var(--text-secondary);margin-top:6px;font-variant-numeric:tabular-nums;display:flex;align-items:center;justify-content:center;gap:8px;">
+      <span id="clockDisplay"></span>
+      <span id="cloudStatus" style="font-size:0.7rem;opacity:0.7;"></span>
+    </div>
     <div class="header-actions">
       <button class="btn-icon" id="themeBtn" onclick="toggleTheme()" title="切换主题">☀️</button>
       <button class="btn-icon" onclick="openNotepad()" title="记事本">📝</button>
       <button class="btn-icon" id="loginBtn" onclick="isAuthenticated?logout():login()" title="点击登录">🔒</button>
       <button class="btn-icon" onclick="showAddModal('quick')" title="添加快速链接">＋</button>
       <button class="btn-icon" onclick="openSettings()" title="管理">⚙️</button>
+      <button class="btn-icon" id="syncBtn" onclick="syncNow()" title="手动同步到云端" style="font-size:0.85rem;">☁️</button>
     </div>
   </div>
 
@@ -1052,6 +1056,25 @@ function setupCloudSync() {
       });
     }
   }).catch(function() { showCloudStatus('❌ 云端连接失败'); });
+}
+
+// 手动同步按钮
+function syncNow() {
+  const btn = document.getElementById('syncBtn');
+  btn.textContent = '⏳';
+  showCloudStatus('☁️ 正在同步...');
+  cfKvApi('PUT', JSON.stringify(data)).then(function(r) {
+    if (r.success) {
+      showCloudStatus('✅ 同步成功 ' + new Date().toLocaleTimeString());
+      btn.textContent = '☁️';
+    } else {
+      showCloudStatus('❌ 同步失败');
+      btn.textContent = '☁️';
+    }
+  }).catch(function() {
+    showCloudStatus('❌ 网络错误');
+    btn.textContent = '☁️';
+  });
 }
 
 function saveData() {
