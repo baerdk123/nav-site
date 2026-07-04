@@ -930,22 +930,18 @@ const DEFAULT_DATA = {
   ]
 };
 
-let data = loadData();
+let data = JSON.parse(JSON.stringify(DEFAULT_DATA));
 
-function loadData() {
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    if (raw) {
-      const parsed = JSON.parse(raw);
-      if (parsed.sections && parsed.quickLinks && parsed.sections.length > 0) return parsed;
-      localStorage.removeItem(STORAGE_KEY);
+// 尝试从 localStorage 读取，失败就用默认
+try {
+  const raw = localStorage.getItem(STORAGE_KEY);
+  if (raw) {
+    const parsed = JSON.parse(raw);
+    if (parsed.sections && parsed.quickLinks && parsed.sections.length > 0) {
+      data = parsed;
     }
-  } catch (e) {
-    localStorage.removeItem(STORAGE_KEY);
   }
-  // 从 links.json 加载（如果有的话）
-  return JSON.parse(JSON.stringify(DEFAULT_DATA));
-}
+} catch(e) {}
 
 // 自动云同步配置
 const CLOUD_CONFIG_KEY = 'nav_cloud_config';
@@ -2120,10 +2116,12 @@ function checkAllSites() {
 }
 
 // ===== 启动 =====
+// 先渲染默认数据，云端同步成功后自动覆盖
+render();
+setTimeout(checkAllSites, 500);
+setInterval(checkAllSites, 60000);
 restoreFromCloudAuto(function() {
-  try { render(); } catch(e) { console.error('render error:', e); document.getElementById('sectionContainer').innerHTML = '<div style="text-align:center;padding:40px;color:red;">渲染错误: ' + e.message + '</div>'; }
-  setTimeout(checkAllSites, 500);
-  setInterval(checkAllSites, 60000);
+  render();
 });
 
 // 主题切换
