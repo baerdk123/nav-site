@@ -1001,6 +1001,7 @@ function syncDataToCloud() {
   }, 1500);
 }
 
+function restoreFromCloudAuto(callback) {
   const config = getCloudConfig();
   if (!config.token) { if(callback) callback(); return; }
   showCloudStatus('☁️');
