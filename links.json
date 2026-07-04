@@ -1,0 +1,42 @@
+{
+  "categories": [
+    {
+      "name": "🐔 养殖OA",
+      "icon": "🏠",
+      "links": [
+        { "title": "养殖OA系统", "url": "http://10.0.0.1:8080", "desc": "养殖部办公自动化" }
+      ]
+    },
+    {
+      "name": "🏢 集团OA",
+      "icon": "🏢",
+      "links": [
+        { "title": "集团OA", "url": "http://10.0.0.2:8080", "desc": "集团协同办公平台" }
+      ]
+    },
+    {
+      "name": "📊 NCC",
+      "icon": "📊",
+      "links": [
+        { "title": "NCC系统", "url": "http://10.0.0.3:8080", "desc": "财务/供应链管理系统" }
+      ]
+    },
+    {
+      "name": "🎬 影音娱乐",
+      "icon": "🎬",
+      "links": [
+        { "title": "Netflix", "url": "https://netflix.com", "desc": "流媒体" },
+        { "title": "YouTube", "url": "https://youtube.com", "desc": "视频" },
+        { "title": "Bilibili", "url": "https://bilibili.com", "desc": "哔哩哔哩" },
+        { "title": "豆瓣", "url": "https://movie.douban.com", "desc": "电影评分" }
+      ]
+    },
+    {
+      "name": "🔧 自建服务",
+      "icon": "⚙️",
+      "links": [
+        { "title": "导航后台", "url": "/admin", "desc": "在线编辑书签" }
+      ]
+    }
+  ]
+}

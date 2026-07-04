@@ -1,0 +1,52 @@
+# Decap CMS 后台配置
+# ★ 部署前请修改以下字段 ★
+
+backend:
+  name: github
+  repo: your-username/nav-site          # ← 改为你的 GitHub 用户名/仓库名
+  branch: main
+  auth_type: github-pat
+  # ★ 重要：在 Cloudflare Pages 后台设置环境变量 GITHUB_TOKEN
+  #    构建时自动替换下方占位符
+  token: GITHUB_TOKEN_PLACEHOLDER
+
+local_backend: false
+publish_mode: editorial_workflow
+media_folder: "assets/uploads"
+public_folder: "/assets/uploads"
+site_url: "https://你的域名.pages.dev"
+display_url: "https://你的域名.pages.dev"
+logo_url: ""
+
+collections:
+  - name: "navigation"
+    label: "书签管理"
+    label_singular: "书签"
+    description: "管理导航站所有分类和链接"
+    extension: json
+    format: json
+    editor:
+      preview: false
+    files:
+      - name: "links"
+        label: "书签数据库"
+        file: "links.json"
+        fields:
+          - name: "categories"
+            label: "分类列表"
+            label_singular: "分类"
+            widget: "list"
+            collapsed: false
+            fields:
+              - { name: "name", label: "分类名称", widget: "string" }
+              - { name: "icon", label: "分类图标", widget: "string", hint: "如 🎬 📊 ⚙️" }
+              - name: "links"
+                label: "链接列表"
+                label_singular: "链接"
+                widget: "list"
+                collapsed: false
+                fields:
+                  - { name: "title", label: "标题", widget: "string" }
+                  - { name: "url", label: "网址", widget: "string" }
+                  - { name: "desc", label: "描述", widget: "string", required: false }
+                  - { name: "icon", label: "图标", widget: "string", required: false }

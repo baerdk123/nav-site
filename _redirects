@@ -1,0 +1,6 @@
+# Cloudflare Pages 重定向规则
+# /admin 路径指向 admin/index.html（SPA 式路由支持）
+/admin  /admin/index.html  200
+
+# 确保 links.json 不被缓存太长时间（调试用）
+/links.json  /links.json  200
