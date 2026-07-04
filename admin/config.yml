@@ -3,7 +3,7 @@
 
 backend:
   name: github
-  repo: your-username/nav-site          # ← 改为你的 GitHub 用户名/仓库名
+  repo: baerdk123/nav-site
   branch: main
   auth_type: github-pat
   # ★ 重要：在 Cloudflare Pages 后台设置环境变量 GITHUB_TOKEN
@@ -14,8 +14,8 @@ local_backend: false
 publish_mode: editorial_workflow
 media_folder: "assets/uploads"
 public_folder: "/assets/uploads"
-site_url: "https://你的域名.pages.dev"
-display_url: "https://你的域名.pages.dev"
+site_url: "https://nav-site.pages.dev"
+display_url: "https://nav-site.pages.dev"
 logo_url: ""
 
 collections:
