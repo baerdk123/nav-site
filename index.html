@@ -784,6 +784,7 @@
     <div class="settings-tabs">
       <button class="settings-tab active" onclick="switchSettingsTab('general',this)">📐 基本</button>
       <button class="settings-tab" onclick="switchSettingsTab('sections',this)">📂 分类</button>
+      <button class="settings-tab" onclick="switchSettingsTab('search',this)">🔍 搜索引擎</button>
     </div>
     <div class="settings-body">
       <div id="panelGeneral" class="settings-panel active">
@@ -805,6 +806,9 @@
           <button class="btn-icon" onclick="addSection()" style="width:auto;border-radius:12px;padding:6px 16px;gap:5px;">＋ 添加分类</button>
         </div>
         <div id="settingsSectionList"></div>
+      </div>
+      <div id="panelSearch" class="settings-panel">
+        <div id="settingsSearchList"></div>
       </div>
     </div>
     <div class="settings-foot">
@@ -1197,6 +1201,7 @@ function switchSettingsTab(panelId, btn) {
   btn.classList.add('active');
   document.getElementById('panel' + panelId.charAt(0).toUpperCase() + panelId.slice(1)).classList.add('active');
   if (panelId === 'sections') renderSettingsSections();
+  if (panelId === 'search') renderSettingsSearch();
 }
 
 function openSettings() {
@@ -1265,6 +1270,41 @@ function moveLink(si, li, dir) {
   saveData(); render(); renderSettingsSections();
 }
 
+// 搜索引擎管理
+let searchEngines = [
+  { id: 'google', name: 'Google', url: 'https://www.google.com/search' },
+  { id: 'bing', name: 'Bing', url: 'https://www.bing.com/search' },
+  { id: 'baidu', name: '百度', url: 'https://www.baidu.com/s' },
+  { id: 'yandex', name: 'Yandex', url: 'https://yandex.com/search' }
+];
+
+function renderSettingsSearch() {
+  const list = document.getElementById('settingsSearchList');
+  list.innerHTML = searchEngines.map((e, i) => `
+    <div class="settings-item">
+      <button class="s-btn" onclick="moveSearchEngine(${i},-1)" style="font-size:0.75rem;padding:2px 8px;" ${i===0?'disabled':''}>▲</button>
+      <button class="s-btn" onclick="moveSearchEngine(${i},1)" style="font-size:0.75rem;padding:2px 8px;" ${i===searchEngines.length-1?'disabled':''}>▼</button>
+      <span class="s-name">${e.name}</span>
+      <a class="s-url" href="${e.url}" target="_blank" style="font-size:0.7rem;color:var(--text-secondary);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:200px;text-decoration:none;">${e.url}</a>
+    </div>
+  `).join('');
+}
+
+function moveSearchEngine(idx, dir) {
+  const newIdx = idx + dir;
+  if (newIdx < 0 || newIdx >= searchEngines.length) return;
+  const item = searchEngines.splice(idx, 1)[0];
+  searchEngines.splice(newIdx, 0, item);
+  // 更新搜索框
+  const sel = document.getElementById('searchEngineSelect');
+  sel.innerHTML = searchEngines.map(e => `<option value="${e.id}">${e.name}</option>`).join('');
+  const current = sel.value;
+  if (searchEngines.find(e => e.id === current)) sel.value = current;
+  else sel.value = searchEngines[0].id;
+  document.getElementById('searchForm').action = searchEngines.find(e => e.id === sel.value)?.url || searchEngines[0].url;
+  renderSettingsSearch();
+}
+
 function renameSection(idx) {
   const newName = prompt('新分类名称：', data.sections[idx].name);
   if (newName && newName.trim()) data.sections[idx].name = newName.trim();
@@ -1289,25 +1329,22 @@ function addSection() {
 
 // ===== 搜索引擎切换 =====
 (function(){
-const SEARCH_URLS = {
-  google: 'https://www.google.com/search',
-  bing: 'https://www.bing.com/search',
-  yandex: 'https://yandex.com/search',
-  baidu: 'https://www.baidu.com/s'
-};
 const sel = document.getElementById('searchEngineSelect');
 const form = document.getElementById('searchForm');
+
+// 从 searchEngines 变量生成选项
+sel.innerHTML = searchEngines.map(e => `<option value="${e.id}">${e.name}</option>`).join('');
 
 // 恢复上次选择
 try {
   const saved = localStorage.getItem('search_engine');
-  if (saved && SEARCH_URLS[saved]) sel.value = saved;
+  if (saved && searchEngines.find(e => e.id === saved)) sel.value = saved;
 } catch(e) {}
 
-form.action = SEARCH_URLS[sel.value];
+form.action = searchEngines.find(e => e.id === sel.value)?.url || searchEngines[0].url;
 
 sel.onchange = function() {
-  form.action = SEARCH_URLS[sel.value];
+  form.action = searchEngines.find(e => e.id === sel.value)?.url || searchEngines[0].url;
   try { localStorage.setItem('search_engine', sel.value); } catch(e) {}
   document.getElementById('searchInput').focus();
 };
@@ -1323,7 +1360,7 @@ form.onsubmit = function() {
   for (const [prefix, engine] of Object.entries(quickMap)) {
     if (val.startsWith(prefix)) {
       document.getElementById('searchInput').value = val.slice(prefix.length);
-      form.action = SEARCH_URLS[engine];
+      form.action = searchEngines.find(e => e.id === engine)?.url || searchEngines[0].url;
       sel.value = engine;
       try { localStorage.setItem('search_engine', engine); } catch(e) {}
       setTimeout(() => { document.getElementById('searchInput').value = ''; }, 100);
