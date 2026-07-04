@@ -798,6 +798,10 @@
           <label>副标题</label>
           <input id="settingsSubtitle" type="text" onchange="data.subtitle=this.value">
         </div>
+        <div class="settings-field">
+          <label>页面宽度 (px)</label>
+          <input id="settingsWidth" type="number" placeholder="720" onchange="data.pageWidth=this.value;applyPageWidth()" style="width:120px;">
+        </div>
       </div>
       <div id="panelSections" class="settings-panel">
         <div class="section-actions">
@@ -932,8 +936,16 @@ let data = loadData();
 function loadData() {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
-    if (raw) return JSON.parse(raw);
-  } catch (e) {}
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      // 验证数据格式是否正确
+      if (parsed.sections && parsed.quickLinks) return parsed;
+      // 格式不对，丢弃
+      localStorage.removeItem(STORAGE_KEY);
+    }
+  } catch (e) {
+    localStorage.removeItem(STORAGE_KEY);
+  }
   // 从 links.json 加载默认数据（支持 Decap CMS 编辑）
   try {
     var xhr = new XMLHttpRequest();
@@ -1032,6 +1044,16 @@ function saveData() {
   syncDataToCloud();
 }
 
+// 页面宽度设置
+function applyPageWidth() {
+  const w = data.pageWidth;
+  if (w) {
+    document.querySelector('.container').style.maxWidth = w + 'px';
+  } else {
+    document.querySelector('.container').style.maxWidth = '';
+  }
+}
+
 function renderSVGIcon(name) {
   const svgs = {
     '百度': '<svg viewBox="0 0 24 24" width="18" height="18" fill="none"><rect width="24" height="24" rx="4" fill="#2932e1"/><path d="M7.5 8a1.5 1.5 0 100 3 1.5 1.5 0 000-3zm4-1a1.5 1.5 0 100 3 1.5 1.5 0 000-3zm4 0a1.5 1.5 0 100 3 1.5 1.5 0 000-3zm-6 5.5c0 2 2 3 4 3s4-1 4-3" stroke="#fff" stroke-width="1.2" fill="none"/></svg>',
@@ -1059,6 +1081,7 @@ function renderSVGIcon(name) {
 function render() {
   document.getElementById('pageTitle').textContent = data.title;
   document.getElementById('pageSubtitle').textContent = data.subtitle;
+  applyPageWidth();
 
   const ql = document.getElementById('quickLinks');
   ql.innerHTML = data.quickLinks.map((l, i) =>
@@ -1206,6 +1229,7 @@ function switchSettingsTab(panelId, btn) {
 function openSettings() {
   document.getElementById('settingsTitle').value = data.title;
   document.getElementById('settingsSubtitle').value = data.subtitle;
+  document.getElementById('settingsWidth').value = data.pageWidth || '';
   document.querySelectorAll('.settings-tab').forEach((t, i) => t.classList.toggle('active', i === 0));
   document.querySelectorAll('.settings-panel').forEach((p, i) => p.classList.toggle('active', i === 0));
   renderSettingsSections();
@@ -2115,6 +2139,10 @@ function checkAllSites() {
 // ===== 启动 =====
 // 尝试从云端恢复
 restoreFromCloudAuto(function() {
+  // 如果云端拉取后数据是空的，从本地重新加载
+  if (!data.sections || data.sections.length === 0) {
+    data = loadData();
+  }
   render();
   setTimeout(checkAllSites, 500);
   setInterval(checkAllSites, 60000);
