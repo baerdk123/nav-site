@@ -1001,7 +1001,6 @@ function syncDataToCloud() {
   }, 1500);
 }
 
-function restoreFromCloudAuto(callback) {
   const config = getCloudConfig();
   if (!config.token) { if(callback) callback(); return; }
   showCloudStatus('☁️');
@@ -1226,22 +1225,32 @@ function closeSettings(ev) {
 function renderSettingsSections() {
   const list = document.getElementById('settingsSectionList');
   list.innerHTML = data.sections.map((s, i) => `
-    <div class="settings-item">
-      <button class="s-btn" onclick="moveSection(${i},-1)" style="font-size:0.75rem;padding:2px 8px;" ${i===0?'disabled':''}>▲</button>
-      <button class="s-btn" onclick="moveSection(${i},1)" style="font-size:0.75rem;padding:2px 8px;" ${i===data.sections.length-1?'disabled':''}>▼</button>
-      <span class="s-name">${s.name}</span>
-      <button class="s-btn" onclick="renameSection(${i})">✏️</button>
-      <button class="s-btn del" onclick="deleteSection(${i})">🗑️</button>
+    <div class="settings-item" style="flex-direction:column;align-items:stretch;">
+      <div style="display:flex;align-items:center;gap:8px;">
+        <button class="s-btn" onclick="moveSection(${i},-1)" style="font-size:0.75rem;padding:2px 8px;" ${i===0?'disabled':''}>▲</button>
+        <button class="s-btn" onclick="moveSection(${i},1)" style="font-size:0.75rem;padding:2px 8px;" ${i===data.sections.length-1?'disabled':''}>▼</button>
+        <span class="s-name">${s.name}</span>
+        <button class="s-btn" onclick="renameSection(${i})">✏️</button>
+        <button class="s-btn del" onclick="deleteSection(${i})">🗑️</button>
+      </div>
+      <div style="margin-left:24px;padding-left:8px;border-left:2px solid var(--divider);margin-top:4px;">
+        ${s.links.map((l, li) => `
+          <div style="display:flex;align-items:center;gap:6px;padding:3px 0;font-size:0.78rem;">
+            <button class="s-btn" onclick="moveLink(${i},${li},-1)" style="font-size:0.65rem;padding:1px 6px;" ${li===0?'disabled':''}>▲</button>
+            <button class="s-btn" onclick="moveLink(${i},${li},1)" style="font-size:0.65rem;padding:1px 6px;" ${li===s.links.length-1?'disabled':''}>▼</button>
+            <span>${l.emoji || '🔗'}</span>
+            <span style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${l.name}</span>
+          </div>
+        `).join('')}
+      </div>
     </div>
   `).join('');
   list.innerHTML += `
     <div style="margin-top:16px;padding-top:16px;border-top:1.5px solid var(--divider);">
       <div style="display:flex;gap:8px;flex-wrap:wrap;">
+        <button class="btn-icon" onclick="fetchAllIcons()" style="width:auto;border-radius:12px;padding:8px 16px;gap:5px;font-size:0.8rem;background:linear-gradient(135deg,var(--accent),#4a5ae0);color:#fff;border:none;">🔄 获取图标</button>
         <button class="btn-icon" onclick="exportData()" style="width:auto;border-radius:12px;padding:8px 16px;gap:5px;font-size:0.8rem;">📤 导出数据</button>
         <button class="btn-icon" onclick="importData()" style="width:auto;border-radius:12px;padding:8px 16px;gap:5px;font-size:0.8rem;">📥 导入数据</button>
-        <button class="btn-icon" onclick="fetchAllIcons()" style="width:auto;border-radius:12px;padding:8px 16px;gap:5px;font-size:0.8rem;background:linear-gradient(135deg,var(--accent),#4a5ae0);color:#fff;border:none;">🔄 获取图标</button>
-        <button class="btn-icon" onclick="backupToCloud()" style="width:auto;border-radius:12px;padding:8px 16px;gap:5px;font-size:0.8rem;">☁️ 云端备份</button>
-        <button class="btn-icon" onclick="restoreFromCloud()" style="width:auto;border-radius:12px;padding:8px 16px;gap:5px;font-size:0.8rem;">⬇️ 云端恢复</button>
       </div>
     </div>
   `;
@@ -1252,6 +1261,15 @@ function moveSection(idx, dir) {
   if (newIdx < 0 || newIdx >= data.sections.length) return;
   const item = data.sections.splice(idx, 1)[0];
   data.sections.splice(newIdx, 0, item);
+  saveData(); render(); renderSettingsSections();
+}
+
+function moveLink(si, li, dir) {
+  const links = data.sections[si].links;
+  const newLi = li + dir;
+  if (newLi < 0 || newLi >= links.length) return;
+  const item = links.splice(li, 1)[0];
+  links.splice(newLi, 0, item);
   saveData(); render(); renderSettingsSections();
 }
 
@@ -1269,11 +1287,9 @@ function renderSettingsQuick() {
   list.innerHTML += `
     <div style="margin-top:16px;padding-top:16px;border-top:1.5px solid var(--divider);">
       <div style="display:flex;gap:8px;flex-wrap:wrap;">
+        <button class="btn-icon" onclick="fetchAllIcons()" style="width:auto;border-radius:12px;padding:8px 16px;gap:5px;font-size:0.8rem;background:linear-gradient(135deg,var(--accent),#4a5ae0);color:#fff;border:none;">🔄 获取图标</button>
         <button class="btn-icon" onclick="exportData()" style="width:auto;border-radius:12px;padding:8px 16px;gap:5px;font-size:0.8rem;">📤 导出数据</button>
         <button class="btn-icon" onclick="importData()" style="width:auto;border-radius:12px;padding:8px 16px;gap:5px;font-size:0.8rem;">📥 导入数据</button>
-        <button class="btn-icon" onclick="fetchAllIcons()" style="width:auto;border-radius:12px;padding:8px 16px;gap:5px;font-size:0.8rem;background:linear-gradient(135deg,var(--accent),#4a5ae0);color:#fff;border:none;">🔄 获取图标</button>
-        <button class="btn-icon" onclick="backupToCloud()" style="width:auto;border-radius:12px;padding:8px 16px;gap:5px;font-size:0.8rem;">☁️ 云端备份</button>
-        <button class="btn-icon" onclick="restoreFromCloud()" style="width:auto;border-radius:12px;padding:8px 16px;gap:5px;font-size:0.8rem;">⬇️ 云端恢复</button>
       </div>
     </div>
   `;
@@ -1953,7 +1969,7 @@ function fetchAllIcons() {
 }
 
 // ===== 云端备份（GitHub Gist）=====
-function backupToCloud() {
+function exportData() {
     const token2 = prompt('请输入 GitHub Token（需要 gist 权限）：');
     if (!token2) return;
     const json = JSON.stringify(data, null, 2);
@@ -1974,7 +1990,7 @@ function backupToCloud() {
     }).catch(err => alert('网络错误：' + err.message));
 }
 
-function restoreFromCloud() {
+function importData() {
     const token2 = prompt('请输入 GitHub Token：');
     if (!token2) return;
     const gistUrl = localStorage.getItem('nav_gist_url');
@@ -2119,7 +2135,6 @@ function checkAllSites() {
 render();
 setTimeout(checkAllSites, 500);
 setInterval(checkAllSites, 60000);
-restoreFromCloudAuto(function() {
   render();
 });
 
