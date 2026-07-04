@@ -784,7 +784,6 @@
     <div class="settings-tabs">
       <button class="settings-tab active" onclick="switchSettingsTab('general',this)">📐 基本</button>
       <button class="settings-tab" onclick="switchSettingsTab('sections',this)">📂 分类</button>
-      <button class="settings-tab" onclick="switchSettingsTab('quick',this)">⚡ 快速链接</button>
     </div>
     <div class="settings-body">
       <div id="panelGeneral" class="settings-panel active">
@@ -806,12 +805,6 @@
           <button class="btn-icon" onclick="addSection()" style="width:auto;border-radius:12px;padding:6px 16px;gap:5px;">＋ 添加分类</button>
         </div>
         <div id="settingsSectionList"></div>
-      </div>
-      <div id="panelQuick" class="settings-panel">
-        <div class="section-actions">
-          <button class="btn-add-link" onclick="showAddModal('quick')" style="font-size:0.8rem;padding:5px 16px;">＋ 添加快速链接</button>
-        </div>
-        <div id="settingsQuickLinks"></div>
       </div>
     </div>
     <div class="settings-foot">
@@ -1204,7 +1197,6 @@ function switchSettingsTab(panelId, btn) {
   btn.classList.add('active');
   document.getElementById('panel' + panelId.charAt(0).toUpperCase() + panelId.slice(1)).classList.add('active');
   if (panelId === 'sections') renderSettingsSections();
-  if (panelId === 'quick') renderSettingsQuick();
 }
 
 function openSettings() {
@@ -1214,7 +1206,6 @@ function openSettings() {
   document.querySelectorAll('.settings-tab').forEach((t, i) => t.classList.toggle('active', i === 0));
   document.querySelectorAll('.settings-panel').forEach((p, i) => p.classList.toggle('active', i === 0));
   renderSettingsSections();
-  renderSettingsQuick();
   document.getElementById('settingsOverlay').classList.add('show');
 }
 
@@ -1274,28 +1265,6 @@ function moveLink(si, li, dir) {
   saveData(); render(); renderSettingsSections();
 }
 
-function renderSettingsQuick() {
-  const list = document.getElementById('settingsQuickLinks');
-  list.innerHTML = data.quickLinks.map((l, i) => `
-    <div class="settings-item">
-      <span class="s-icon">${l.icon}</span>
-      <span class="s-name">${l.name}</span>
-      <a class="s-url" href="${l.url}" target="_blank">${l.url}</a>
-      <button class="s-btn" onclick="editQuickLink(${i})">✏️</button>
-      <button class="s-btn del" onclick="deleteQuickLink(${i})">🗑️</button>
-    </div>
-  `).join('');
-  list.innerHTML += `
-    <div style="margin-top:16px;padding-top:16px;border-top:1.5px solid var(--divider);">
-      <div style="display:flex;gap:8px;flex-wrap:wrap;">
-        <button class="btn-icon" onclick="fetchAllIcons()" style="width:auto;border-radius:12px;padding:8px 16px;gap:5px;font-size:0.8rem;background:linear-gradient(135deg,var(--accent),#4a5ae0);color:#fff;border:none;">🔄 获取图标</button>
-        <button class="btn-icon" onclick="exportData()" style="width:auto;border-radius:12px;padding:8px 16px;gap:5px;font-size:0.8rem;">📤 导出数据</button>
-        <button class="btn-icon" onclick="importData()" style="width:auto;border-radius:12px;padding:8px 16px;gap:5px;font-size:0.8rem;">📥 导入数据</button>
-      </div>
-    </div>
-  `;
-}
-
 function renameSection(idx) {
   const newName = prompt('新分类名称：', data.sections[idx].name);
   if (newName && newName.trim()) data.sections[idx].name = newName.trim();
@@ -1314,21 +1283,6 @@ function addSection() {
   const id = 'sec_' + Date.now();
   data.sections.push({ id, name: name.trim(), cssClass: '', links: [] });
   renderSettingsSections();
-}
-
-function editQuickLink(idx) {
-  const l = data.quickLinks[idx];
-  const icon = prompt('图标', l.icon); if (!icon) return;
-  const name = prompt('名称', l.name); if (!name) return;
-  const url = prompt('网址', l.url); if (!url) return;
-  data.quickLinks[idx] = { icon: 'svg', name: name.trim(), url: url.trim() };
-  saveData(); render(); renderSettingsQuick();
-}
-
-function deleteQuickLink(idx) {
-  if (!confirm(`确定删除「${data.quickLinks[idx].name}」？`)) return;
-  data.quickLinks.splice(idx, 1);
-  saveData(); render(); renderSettingsQuick();
 }
 
 // ===== 右键菜单处理 =====
