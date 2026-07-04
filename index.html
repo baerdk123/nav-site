@@ -801,12 +801,15 @@
           <input id="settingsSubtitle" type="text" onchange="data.subtitle=this.value;saveData();render()">
         </div>
         <div class="settings-field">
-          <label>页面宽度: <span id="widthValue" style="font-weight:600;">自适应</span></label>
+          <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;">
+            <label style="margin:0;">页面宽度</label>
+            <button class="btn-icon" id="autoWidthBtn" onclick="toggleAutoWidth()" style="width:auto;border-radius:10px;padding:4px 14px;font-size:0.75rem;gap:4px;background:var(--accent);color:#fff;border:none;">✅ 自适应</button>
+            <span id="widthValue" style="font-size:0.8rem;font-weight:600;color:var(--text-secondary);"></span>
+          </div>
           <div style="display:flex;align-items:center;gap:12px;">
-            <input type="range" id="settingsWidth" min="0" max="1280" step="20" value="960"
-              oninput="applyWidthPreview(this.value)" onchange="data.pageWidth=this.value||'';saveData();applyPageWidth()"
+            <input type="range" id="settingsWidth" min="600" max="1400" step="20" value="960"
+              oninput="applyWidthPreview(this.value)" onchange="data.pageWidth=this.value;saveData();applyPageWidth()"
               style="flex:1;height:6px;-webkit-appearance:none;appearance:none;background:var(--accent);border-radius:4px;outline:none;cursor:pointer;">
-            <span style="font-size:0.75rem;color:var(--text-secondary);white-space:nowrap;min-width:60px;">0 = 自适应</span>
           </div>
         </div>
       </div>
@@ -1033,24 +1036,45 @@ function saveData() {
 }
 
 // 页面宽度设置
+let widthAuto = true;
+
 function applyPageWidth() {
   const w = data.pageWidth;
-  if (w) {
+  if (w && !widthAuto) {
     document.querySelector('.container').style.maxWidth = w + 'px';
   } else {
     document.querySelector('.container').style.maxWidth = '';
   }
 }
 
-// 宽度进度条预览（仅设置面板中实时显示）
+// 宽度进度条预览
 function applyWidthPreview(val) {
   const label = document.getElementById('widthValue');
   if (!label) return;
-  if (!val || val === '0') {
-    label.textContent = '自适应';
+  label.textContent = val + 'px';
+}
+
+// 切换自适应
+function toggleAutoWidth() {
+  widthAuto = !widthAuto;
+  data.widthAuto = widthAuto;
+  const btn = document.getElementById('autoWidthBtn');
+  const slider = document.getElementById('settingsWidth');
+  if (widthAuto) {
+    btn.textContent = '✅ 自适应';
+    btn.style.background = 'var(--accent)';
+    slider.disabled = true;
+    slider.style.opacity = '0.4';
+    delete data.pageWidth;
   } else {
-    label.textContent = val + 'px';
+    btn.textContent = '⬜ 自适应';
+    btn.style.background = 'var(--text-secondary)';
+    slider.disabled = false;
+    slider.style.opacity = '1';
+    data.pageWidth = slider.value;
   }
+  saveData();
+  applyPageWidth();
 }
 
 function renderSVGIcon(name) {
@@ -1230,7 +1254,21 @@ function openSettings() {
   document.getElementById('settingsTitle').value = data.title;
   document.getElementById('settingsSubtitle').value = data.subtitle;
   document.getElementById('settingsWidth').value = data.pageWidth || '960';
-  applyWidthPreview(data.pageWidth || '0');
+  widthAuto = data.widthAuto !== false;
+  applyWidthPreview(data.pageWidth || '960');
+  const autoBtn = document.getElementById('autoWidthBtn');
+  const slider = document.getElementById('settingsWidth');
+  if (widthAuto) {
+    autoBtn.textContent = '✅ 自适应';
+    autoBtn.style.background = 'var(--accent)';
+    slider.disabled = true;
+    slider.style.opacity = '0.4';
+  } else {
+    autoBtn.textContent = '⬜ 自适应';
+    autoBtn.style.background = 'var(--text-secondary)';
+    slider.disabled = false;
+    slider.style.opacity = '1';
+  }
   document.querySelectorAll('.settings-tab').forEach((t, i) => t.classList.toggle('active', i === 0));
   document.querySelectorAll('.settings-panel').forEach((p, i) => p.classList.toggle('active', i === 0));
   renderSettingsSections();
