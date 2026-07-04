@@ -2121,7 +2121,7 @@ function checkAllSites() {
 
 // ===== 启动 =====
 restoreFromCloudAuto(function() {
-  render();
+  try { render(); } catch(e) { console.error('render error:', e); document.getElementById('sectionContainer').innerHTML = '<div style="text-align:center;padding:40px;color:red;">渲染错误: ' + e.message + '</div>'; }
   setTimeout(checkAllSites, 500);
   setInterval(checkAllSites, 60000);
 });
