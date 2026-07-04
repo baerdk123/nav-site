@@ -71,6 +71,9 @@
     background-image:
 
   .container { max-width: min(960px, 100%); margin: 0 auto; padding: 0 24px; }
+  @media (min-width: 1024px) {
+    .container { max-width: 960px; }
+  }
 
   /* ---- Header ---- */
   .header {
@@ -711,6 +714,8 @@
     .header-actions { position: static; justify-content: flex-end; margin-top: 10px; }
     .settings-modal { max-width: 100%; width: 100%; max-height: 100vh; border-radius: 0; }
     .settings-item .s-url { display: none; }
+    .settings-body { padding: 16px; }
+    .settings-item { font-size: 0.82rem; }
     .quick-link { padding: 8px 14px; font-size: 0.8rem; }
   }
 </style>
@@ -1285,6 +1290,10 @@ let searchEngines = [
   { id: 'baidu', name: '百度', url: 'https://www.baidu.com/s' },
   { id: 'yandex', name: 'Yandex', url: 'https://yandex.com/search' }
 ];
+try {
+  const saved = localStorage.getItem('nav_search_engines');
+  if (saved) { const p = JSON.parse(saved); if (p.length) searchEngines = p; }
+} catch(e) {}
 
 function renderSettingsSearch() {
   const list = document.getElementById('settingsSearchList');
@@ -1303,6 +1312,8 @@ function moveSearchEngine(idx, dir) {
   if (newIdx < 0 || newIdx >= searchEngines.length) return;
   const item = searchEngines.splice(idx, 1)[0];
   searchEngines.splice(newIdx, 0, item);
+  // 保存到 localStorage
+  try { localStorage.setItem('nav_search_engines', JSON.stringify(searchEngines)); } catch(e) {}
   // 更新搜索框
   const sel = document.getElementById('searchEngineSelect');
   sel.innerHTML = searchEngines.map(e => `<option value="${e.id}">${e.name}</option>`).join('');
