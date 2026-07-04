@@ -1021,6 +1021,8 @@ function restoreFromCloudAuto(callback) {
       if (cloudData.sections && cloudData.quickLinks) {
         data = cloudData;
         localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+        // 重新加载搜索引擎
+        searchEngines = getSearchEngines();
         showCloudStatus('☁️');
       }
     }
@@ -1282,17 +1284,19 @@ function moveLink(si, li, dir) {
   saveData(); render(); renderSettingsSections();
 }
 
-// 搜索引擎管理
-let searchEngines = [
-  { id: 'google', name: 'Google', url: 'https://www.google.com/search' },
-  { id: 'bing', name: 'Bing', url: 'https://www.bing.com/search' },
-  { id: 'baidu', name: '百度', url: 'https://www.baidu.com/s' },
-  { id: 'yandex', name: 'Yandex', url: 'https://yandex.com/search' }
-];
-try {
-  const saved = localStorage.getItem('nav_search_engines');
-  if (saved) { const p = JSON.parse(saved); if (p.length) searchEngines = p; }
-} catch(e) {}
+// 搜索引擎管理（存在 data.searchEngines 中，随书签一起云同步）
+function getSearchEngines() {
+  if (data.searchEngines && data.searchEngines.length) return data.searchEngines;
+  // 首次使用，设置默认值
+  data.searchEngines = [
+    { id: 'google', name: 'Google', url: 'https://www.google.com/search' },
+    { id: 'bing', name: 'Bing', url: 'https://www.bing.com/search' },
+    { id: 'baidu', name: '百度', url: 'https://www.baidu.com/s' },
+    { id: 'yandex', name: 'Yandex', url: 'https://yandex.com/search' }
+  ];
+  return data.searchEngines;
+}
+let searchEngines = getSearchEngines();
 
 function renderSettingsSearch() {
   const list = document.getElementById('settingsSearchList');
@@ -1311,8 +1315,8 @@ function moveSearchEngine(idx, dir) {
   if (newIdx < 0 || newIdx >= searchEngines.length) return;
   const item = searchEngines.splice(idx, 1)[0];
   searchEngines.splice(newIdx, 0, item);
-  // 保存到 localStorage
-  try { localStorage.setItem('nav_search_engines', JSON.stringify(searchEngines)); } catch(e) {}
+  data.searchEngines = searchEngines;
+  saveData();
   // 更新搜索框
   const sel = document.getElementById('searchEngineSelect');
   sel.innerHTML = searchEngines.map(e => `<option value="${e.id}">${e.name}</option>`).join('');
