@@ -1512,8 +1512,14 @@ function handleWallpaperUpload(e) {
 function clearWallpaper() {
   _wallpaperPending = null;
   _wallpaperPendingType = null;
+  delete data.wallpaper;
+  delete data.wallpaperType;
+  delete data.wallpaperUrl;
+  delete data.wallpaperColor;
   applyWallpaperDirect(null, null);
   updateWallpaperPreview(null, null);
+  saveData();
+  showToast('壁纸已清除', 'success');
 }
 
 function saveWallpaper() {
