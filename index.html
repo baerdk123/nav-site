@@ -20,6 +20,9 @@
 <title>我的导航</title>
 <style>
   :root {
+    --icon-size: 26px;
+    --icon-emoji-size: 1.7rem;
+    --ql-icon-size: 18px;
     --bg: #f5f5f7;
     --card-bg: rgba(255,255,255,0.65);
     --card-border: rgba(0,0,0,0.06);
@@ -41,6 +44,9 @@
     --trash-bg: rgba(254,202,202,0.85);
   }
   .dark-mode {
+    --icon-size: 26px;
+    --icon-emoji-size: 1.7rem;
+    --ql-icon-size: 18px;
     --bg: #1d1d1f;
     --card-bg: rgba(44,44,46,0.7);
     --card-border: rgba(255,255,255,0.06);
@@ -359,7 +365,7 @@
     padding: 10px 20px; border-radius: 12px; z-index: 10; white-space: nowrap;
   }
 
-  .nav-card .emoji { font-size: 1.7rem; line-height: 1; }
+  .nav-card .emoji { font-size: var(--icon-emoji-size,1.7rem); line-height: 1; }
   .nav-card .label {
     font-size: 0.78rem;
     line-height: 1.25;
@@ -894,6 +900,14 @@
           </div>
         </div>
         <div class="settings-field">
+          <label>图标大小 <span id="iconSizeLabel" style="font-size:0.78rem;color:var(--text-secondary);font-weight:400;">26px</span></label>
+          <div style="display:flex;align-items:center;gap:12px;">
+            <input type="range" id="settingsIconSize" min="16" max="48" step="2" value="26"
+              oninput="applyIconSizePreview(this.value)" onchange="data.iconSize=parseInt(this.value);document.getElementById('iconSizeLabel').textContent=this.value+'px';saveData();render()"
+              style="flex:1;height:6px;-webkit-appearance:none;appearance:none;background:var(--accent);border-radius:4px;outline:none;cursor:pointer;">
+          </div>
+        </div>
+        <div class="settings-field">
           <label>🔐 设置密码 <span style="font-size:0.7rem;color:var(--text-secondary);font-weight:400;">（开启后进入设置需验证）</span></label>
           <div style="display:flex;gap:8px;">
             <input id="settingsPassword" type="password" placeholder="输入设置密码" style="flex:1;padding:11px 16px;border:1.5px solid var(--border-light);border-radius:14px;font-size:0.9rem;outline:none;background:var(--input-bg);color:var(--text);">
@@ -1152,6 +1166,18 @@ function applyPageWidth() {
 }
 
 // 宽度进度条预览
+function applyIconSize() {
+  var s = data.iconSize || 26;
+  document.documentElement.style.setProperty('--icon-size', s + 'px');
+  document.documentElement.style.setProperty('--icon-emoji-size', (s/15.3) + 'rem');
+  document.documentElement.style.setProperty('--ql-icon-size', Math.round(s * 0.7) + 'px');
+}
+function applyIconSizePreview(val) {
+  document.documentElement.style.setProperty('--icon-size', val + 'px');
+  document.documentElement.style.setProperty('--icon-emoji-size', (parseInt(val)/15.3).toFixed(2) + 'rem');
+  document.documentElement.style.setProperty('--ql-icon-size', Math.round(parseInt(val) * 0.7) + 'px');
+  document.getElementById('iconSizeLabel').textContent = val + 'px';
+}
 function applyWidthPreview(val) {
   const label = document.getElementById('widthValue');
   if (!label) return;
@@ -1179,6 +1205,7 @@ function toggleAutoWidth() {
   }
   saveData();
   applyPageWidth();
+  applyIconSize();
 }
 
 function renderSVGIcon(name) {
@@ -1210,13 +1237,14 @@ function render() {
   document.getElementById('pageTitle').textContent = data.title;
   document.getElementById('pageSubtitle').textContent = data.subtitle;
   applyPageWidth();
+  applyIconSize();
 
   const ql = document.getElementById('quickLinks');
   ql.innerHTML = data.quickLinks.map((l, i) =>
     `<a class="quick-link" href="${l.url}" target="_blank" draggable="true"
         data-type="quick" data-idx="${i}"
         ondragstart="onDragStart(event)" ondragend="onDragEnd(event)">
-      <span class="icon">${l.icon === 'svg' ? renderSVGIcon(l.name) : (l.icon === 'img' ? '<img src="' + l.emojiData + '" style="width:18px;height:18px;border-radius:4px;">' : l.icon)}</span>${l.name}</a>`
+      <span class="icon">${l.icon === 'svg' ? renderSVGIcon(l.name) : (l.icon === 'img' ? '<img src="' + l.emojiData + '" style="width:var(--ql-icon-size,18px);height:var(--ql-icon-size,18px);border-radius:4px;">' : l.icon)}</span>${l.name}</a>`
   ).join('');
   ql.ondragover = onDragOverQuick;
   ql.ondrop = onDropQuick;
@@ -1228,7 +1256,7 @@ function render() {
       `<a class="nav-card" href="${l.url}" target="_blank" draggable="true"
           data-type="card" data-si="${si}" data-li="${li}"
           ondragstart="onDragStart(event)" ondragend="onDragEnd(event)">
-        <span class="emoji">${(l.emojiType === 'svg' || l.emojiType === 'img') ? '<img src="' + l.emoji + '" style="width:26px;height:26px;border-radius:4px;">' : l.emoji}</span>
+        <span class="emoji">${(l.emojiType === 'svg' || l.emojiType === 'img') ? '<img src="' + l.emoji + '" style="width:var(--icon-size,26px);height:var(--icon-size,26px);border-radius:4px;">' : l.emoji}</span>
         <span class="status-dot" data-url="${l.url}"></span>
         <span class="label">${l.name}</span>
       </a>`
@@ -1402,6 +1430,8 @@ function doOpenSettings() {
   }
   document.querySelectorAll('.settings-tab').forEach((t, i) => t.classList.toggle('active', i === 0));
   document.querySelectorAll('.settings-panel').forEach((p, i) => p.classList.toggle('active', i === 0));
+  var iconSlider = document.getElementById('settingsIconSize');
+  if (iconSlider) { iconSlider.value = data.iconSize || 26; document.getElementById('iconSizeLabel').textContent = (data.iconSize || 26) + 'px'; }
   renderSettingsSections();
   var pwdEl = document.getElementById('settingsPwdStatus');
   if (pwdEl) pwdEl.textContent = saved ? '✅ 已设置密码' : '未设置密码';
