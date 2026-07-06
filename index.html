@@ -361,15 +361,7 @@
   /* ---- 分类折叠 & 加密 ---- */
   .section-header { cursor: pointer; user-select: none; }
   .section.collapsed .grid { display: none; }
-  .section.locked .grid { filter: blur(8px); pointer-events: none; user-select: none; position: relative; }
-  .section.locked .section-title { opacity: 0.6; filter: blur(2px); }
-  .section.locked .grid::after {
-    content: '🔒 点击标题输入密码';
-    position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%);
-    font-size: 0.85rem; color: var(--text-secondary);
-    background: var(--card-bg); backdrop-filter: blur(12px);
-    padding: 10px 20px; border-radius: 12px; z-index: 10; white-space: nowrap;
-  }
+  .section.locked { display: none; }
 
   .nav-card .emoji { font-size: var(--icon-emoji-size,1.7rem); line-height: 1; }
   .nav-card .label {
@@ -1312,6 +1304,7 @@ function render() {
 
   const container = document.getElementById('sectionContainer');
   container.innerHTML = data.sections.map((s, si) => {
+    if (s.locked && _pwdLocked) return '';
     const linksHtml = s.links.map((l, li) =>
       `<a class="nav-card" href="${l.url}" target="_blank" draggable="true"
           data-type="card" data-si="${si}" data-li="${li}"
@@ -1773,14 +1766,10 @@ function toggleSectionLock(si) {
   if (!section) return;
   const secData = data.sections[si];
   if (!secData) return;
-  if (secData.locked) {
-    secData.locked = false;
-    section.classList.remove('locked');
-  } else {
-    secData.locked = true;
-    section.classList.add('locked');
-  }
+  secData.locked = !secData.locked;
+  if (!secData.locked) delete secData.locked;
   saveData();
+  render();
 }
 
 function setSectionPassword(si) {
@@ -2437,10 +2426,8 @@ document.addEventListener('click', function(e) {
   const si = parseInt(section.dataset.si);
   const secData = data.sections[si];
   if (!secData) return;
-  if (secData.locked || _pwdLocked) {
-    toggleSectionLock(si);
-    return;
-  }
+  // locked 分组已隐藏，不需要判断
+  if (_pwdLocked) return;
   section.classList.toggle('collapsed');
 });
 
