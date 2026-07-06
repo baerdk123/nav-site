@@ -1800,7 +1800,7 @@ function renderSettingsSections() {
           <div style="display:flex;align-items:center;gap:6px;padding:3px 0;font-size:0.78rem;">
             <button class="s-btn" onclick="moveLink(${i},${li},-1)" style="font-size:0.65rem;padding:1px 6px;" ${li===0?'disabled':''}>▲</button>
             <button class="s-btn" onclick="moveLink(${i},${li},1)" style="font-size:0.65rem;padding:1px 6px;" ${li===s.links.length-1?'disabled':''}>▼</button>
-            <span>${l.emoji || '🔗'}</span>
+            <span>${l.emojiType === 'img' || l.emojiType === 'svg' ? '<img src="' + l.emoji + '" style="width:18px;height:18px;border-radius:3px;vertical-align:middle;">' : (l.emoji || '🔗')}</span>
             <span style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${l.name}</span>
           </div>
         `).join('')}
