@@ -1315,7 +1315,7 @@ function render() {
       </a>`
     ).join('');
     return `
-      <div class="section ${s.cssClass || ''}${s.locked ? ' locked' : ''}" data-si="${si}"
+      <div class="section ${s.cssClass || ''}${(_pwdLocked && s.locked) ? ' locked' : ''}" data-si="${si}"
            ondragover="onDragOverSection(event)" ondrop="onDropSection(event)" ondragleave="onDragLeaveSection(event)">
         <div class="section-header">
           <span class="section-title">${s.name}</span>
