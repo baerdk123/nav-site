@@ -1669,7 +1669,8 @@ function renderSettingsSections() {
       <div style="display:flex;align-items:center;gap:8px;">
         <button class="s-btn" onclick="moveSection(${i},-1)" style="font-size:0.75rem;padding:2px 8px;" ${i===0?'disabled':''}>▲</button>
         <button class="s-btn" onclick="moveSection(${i},1)" style="font-size:0.75rem;padding:2px 8px;" ${i===data.sections.length-1?'disabled':''}>▼</button>
-        <span class="s-name">${s.name}</span>
+        <span class="s-name">${s.password ? '🔒 ' : ''}${s.name}</span>
+        <button class="s-btn" onclick="setSectionPassword(${i})" title="设置/清除分类密码">${s.password ? '🔓' : '🔐'}</button>
         <button class="s-btn" onclick="renameSection(${i})">✏️</button>
         <button class="s-btn del" onclick="deleteSection(${i})">🗑️</button>
       </div>
