@@ -1585,12 +1585,7 @@ function setWallpaperFit(fit) {
 }
 
 function pickWallpaperColor() {
-  var html = '<div style="display:grid;grid-template-columns:repeat(6,1fr);gap:8px;padding:8px 0;">';
-  wallpaperColors.forEach(function(c) {
-    html += '<div style="width:36px;height:36px;border-radius:50%;background:' + c + ';cursor:pointer;border:2px solid var(--border-light);" data-color="' + c + '" onclick="previewWallpaperColor(this.dataset.color)"></div>';
-  });
-  html += '</div>';
-  showCustomDialog('🎨 选择壁纸颜色', html);
+  document.getElementById('wallpaperColorPicker').click();
 }
 
 function previewWallpaperColor(color) {
