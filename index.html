@@ -2047,25 +2047,26 @@ function closeCtxMenu() {
 function ctxEdit() {
   if (!ctxTarget) return;
   var saved = data.settingsPassword || "";
-  if (saved) {
-    if (!(_pwdVerified > 0 && Date.now() - _pwdVerified < 5 * 60 * 1000)) {
-      openPwdModal('🔐 密码验证', '编辑需要验证密码', function(input) {
-        if (input === saved) {
-          _pwdVerified = Date.now();
-          closePwdModal();
-          doCtxEdit();
-        } else {
-          document.getElementById('pwdModalError').classList.add('show');
-          document.getElementById('pwdModalInput').value = '';
-          document.getElementById('pwdModalInput').focus();
-        }
-      });
-      return;
-    }
+  if (saved && _pwdLocked) {
+    openPwdModal('🔐 密码验证', '编辑需要验证密码', function(input) {
+      if (input === saved) {
+        _pwdVerified = Date.now();
+        _pwdLocked = false;
+        document.getElementById('lockBtn').textContent = '🔒';
+        document.getElementById('lockBtn').title = '已解锁·点击锁定';
+        document.getElementById('lockBtn').style.color = 'var(--accent)';
+        closePwdModal();
+        doCtxEdit();
+      } else {
+        document.getElementById('pwdModalError').classList.add('show');
+        document.getElementById('pwdModalInput').value = '';
+        document.getElementById('pwdModalInput').focus();
+      }
+    });
+    return;
   }
   doCtxEdit();
-}
-function doCtxEdit() {
+}function doCtxEdit() {
   if (!ctxTarget) return;
   if (ctxTarget.type === 'card') {
     const s = data.sections[ctxTarget.sectionIdx];
@@ -2096,25 +2097,26 @@ function doCtxEdit() {
 function ctxDelete() {
   if (!ctxTarget) return;
   var saved = data.settingsPassword || "";
-  if (saved) {
-    if (!(_pwdVerified > 0 && Date.now() - _pwdVerified < 5 * 60 * 1000)) {
-      openPwdModal('🔐 密码验证', '删除需要验证密码', function(input) {
-        if (input === saved) {
-          _pwdVerified = Date.now();
-          closePwdModal();
-          doCtxDelete();
-        } else {
-          document.getElementById('pwdModalError').classList.add('show');
-          document.getElementById('pwdModalInput').value = '';
-          document.getElementById('pwdModalInput').focus();
-        }
-      });
-      return;
-    }
+  if (saved && _pwdLocked) {
+    openPwdModal('🔐 密码验证', '删除需要验证密码', function(input) {
+      if (input === saved) {
+        _pwdVerified = Date.now();
+        _pwdLocked = false;
+        document.getElementById('lockBtn').textContent = '🔒';
+        document.getElementById('lockBtn').title = '已解锁·点击锁定';
+        document.getElementById('lockBtn').style.color = 'var(--accent)';
+        closePwdModal();
+        doCtxDelete();
+      } else {
+        document.getElementById('pwdModalError').classList.add('show');
+        document.getElementById('pwdModalInput').value = '';
+        document.getElementById('pwdModalInput').focus();
+      }
+    });
+    return;
   }
   doCtxDelete();
-}
-function doCtxDelete() {
+}function doCtxDelete() {
   if (!ctxTarget) return;
   let name = '';
   if (ctxTarget.type === 'card') name = data.sections[ctxTarget.sectionIdx]?.links[ctxTarget.linkIdx]?.name || '';
