@@ -1216,7 +1216,7 @@ function render() {
     `<a class="quick-link" href="${l.url}" target="_blank" draggable="true"
         data-type="quick" data-idx="${i}"
         ondragstart="onDragStart(event)" ondragend="onDragEnd(event)">
-      <span class="icon">${l.icon === 'svg' ? renderSVGIcon(l.name) : l.icon}</span>${l.name}</a>`
+      <span class="icon">${l.icon === 'svg' ? renderSVGIcon(l.name) : (l.icon === 'img' ? '<img src="' + l.emojiData + '" style="width:18px;height:18px;border-radius:4px;">' : l.icon)}</span>${l.name}</a>`
   ).join('');
   ql.ondragover = onDragOverQuick;
   ql.ondrop = onDropQuick;
@@ -1319,6 +1319,7 @@ function confirmModal() {
     const s = data.sections[modalMode.sectionIdx];
     const sectionId = document.getElementById('modalSection').value;
     const newLink = { emoji, name, url };
+    if (getIconType(emoji) === 'img') newLink.emojiType = 'img';
     if (sectionId !== s.id) {
       s.links.splice(modalMode.linkIdx, 1);
       const targetSection = data.sections.find(x => x.id === sectionId);
@@ -1329,7 +1330,9 @@ function confirmModal() {
     saveData(); render(); closeModal(); return;
   }
   if (modalMode && modalMode.type === 'quick') {
-    data.quickLinks[modalMode.linkIdx] = { icon: 'svg', name, url };
+    var ql = { icon: 'svg', name, url };
+    if (getIconType(emoji) === 'img') { ql.icon = 'img'; ql.emojiData = emoji; }
+    data.quickLinks[modalMode.linkIdx] = ql;
     saveData(); render(); closeModal(); return;
   }
 
@@ -1337,7 +1340,9 @@ function confirmModal() {
   const newItem = { emoji, name, url };
   if (getIconType(emoji) === 'img') newItem.emojiType = 'img';
   if (sectionId === '__quick__') {
-    data.quickLinks.push({ icon: 'svg', name, url });
+    var qlItem = { icon: 'svg', name, url };
+    if (getIconType(emoji) === 'img') { qlItem.icon = 'img'; qlItem.emojiData = emoji; }
+    data.quickLinks.push(qlItem);
   } else {
     const s = data.sections.find(x => x.id === sectionId);
     if (s) s.links.push(newItem);
@@ -1914,7 +1919,9 @@ function onDropQuick(e) {
     const link = data.sections[dragData.si].links[dragData.li];
     if (!link) return;
     data.sections[dragData.si].links.splice(dragData.li, 1);
-    data.quickLinks.splice(dropIdx, 0, { icon: 'svg', name: link.name, url: link.url });
+    var qlItem = { icon: 'svg', name: link.name, url: link.url };
+    if (link.emojiType === 'svg' || link.emojiType === 'img') { qlItem.icon = 'img'; qlItem.emojiData = link.emoji; }
+    data.quickLinks.splice(dropIdx, 0, qlItem);
   }
   saveData();
   render();
