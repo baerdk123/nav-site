@@ -76,6 +76,7 @@
     background-repeat: var(--wallpaper-repeat, no-repeat);
     background-position: center;
     background-attachment: fixed;
+    opacity: var(--wallpaper-opacity, 1);
     min-height: 100vh;
     padding: 48px 24px 80px;
     color: var(--text);
@@ -882,6 +883,8 @@
       <button class="settings-tab active" onclick="switchSettingsTab('general',this)">📐 基本</button>
       <button class="settings-tab" onclick="switchSettingsTab('sections',this)">📂 分类</button>
       <button class="settings-tab" onclick="switchSettingsTab('search',this)">🔍 搜索引擎</button>
+      <button class="settings-tab" onclick="switchSettingsTab('wallpaper',this)">🖼 壁纸</button>
+      <button class="settings-tab" onclick="switchSettingsTab('pwd',this)">🔐 密码</button>
     </div>
     <div class="settings-body">
       <div id="panelGeneral" class="settings-panel active">
@@ -914,13 +917,38 @@
           </div>
         </div>
         <div class="settings-field">
+
+      </div>
+      <div id="panelWallpaper" class="settings-panel">
+        <div class="settings-field">
           <label>🖼 壁纸</label>
           <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:8px;">
-            <button class="btn-icon" onclick="pickWallpaperColor()" style="width:auto;border-radius:10px;padding:6px 14px;font-size:0.75rem;gap:4px;">🎨 颜色</button>
-            <button class="btn-icon" onclick="uploadWallpaper()" style="width:auto;border-radius:10px;padding:6px 14px;font-size:0.75rem;gap:4px;">🖼 图片</button>
-            <button class="btn-icon" onclick="clearWallpaper()" style="width:auto;border-radius:10px;padding:6px 14px;font-size:0.75rem;gap:4px;color:#e55;">❌ 清除</button>
+            <button class="btn-icon" id="wallColor0" onclick="previewWallpaperColor('#1a1a2e')" style="width:28px;height:28px;border-radius:8px;border:2px solid var(--border-light);background:#1a1a2e;cursor:pointer;padding:0;"></button>
+            <button class="btn-icon" id="wallColor1" onclick="previewWallpaperColor('#16213e')" style="width:28px;height:28px;border-radius:8px;border:2px solid var(--border-light);background:#16213e;cursor:pointer;padding:0;"></button>
+            <button class="btn-icon" id="wallColor2" onclick="previewWallpaperColor('#0f3460')" style="width:28px;height:28px;border-radius:8px;border:2px solid var(--border-light);background:#0f3460;cursor:pointer;padding:0;"></button>
+            <button class="btn-icon" id="wallColor3" onclick="previewWallpaperColor('#533483')" style="width:28px;height:28px;border-radius:8px;border:2px solid var(--border-light);background:#533483;cursor:pointer;padding:0;"></button>
+            <button class="btn-icon" id="wallColor4" onclick="previewWallpaperColor('#e94560')" style="width:28px;height:28px;border-radius:8px;border:2px solid var(--border-light);background:#e94560;cursor:pointer;padding:0;"></button>
+            <button class="btn-icon" id="wallColor5" onclick="previewWallpaperColor('#f5f5f7')" style="width:28px;height:28px;border-radius:8px;border:2px solid var(--border-light);background:#f5f5f7;cursor:pointer;padding:0;"></button>
+            <button class="btn-icon" id="wallColor6" onclick="previewWallpaperColor('#2d2d2d')" style="width:28px;height:28px;border-radius:8px;border:2px solid var(--border-light);background:#2d2d2d;cursor:pointer;padding:0;"></button>
+            <button class="btn-icon" id="wallColor7" onclick="previewWallpaperColor('#1e3a5f')" style="width:28px;height:28px;border-radius:8px;border:2px solid var(--border-light);background:#1e3a5f;cursor:pointer;padding:0;"></button>
+            <button class="btn-icon" id="wallColor8" onclick="previewWallpaperColor('#1b4332')" style="width:28px;height:28px;border-radius:8px;border:2px solid var(--border-light);background:#1b4332;cursor:pointer;padding:0;"></button>
+            <button class="btn-icon" id="wallColor9" onclick="previewWallpaperColor('#4a1942')" style="width:28px;height:28px;border-radius:8px;border:2px solid var(--border-light);background:#4a1942;cursor:pointer;padding:0;"></button>
+            <button class="btn-icon" id="wallColor10" onclick="previewWallpaperColor('#ff6b6b')" style="width:28px;height:28px;border-radius:8px;border:2px solid var(--border-light);background:#ff6b6b;cursor:pointer;padding:0;"></button>
+            <button class="btn-icon" id="wallColor11" onclick="previewWallpaperColor('#6c5ce7')" style="width:28px;height:28px;border-radius:8px;border:2px solid var(--border-light);background:#6c5ce7;cursor:pointer;padding:0;"></button>
           </div>
-          <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px;">
+          <div style="display:flex;gap:8px;align-items:center;margin-bottom:8px;">
+            <label style="font-size:0.78rem;color:var(--text-secondary);">自定义颜色</label>
+            <div style="display:flex;gap:6px;align-items:center;">
+              <input type="color" id="wallpaperColorPicker" onchange="previewWallpaperColor(this.value)" style="width:32px;height:32px;padding:0;border:1.5px solid var(--border-light);border-radius:6px;cursor:pointer;background:none;">
+              <input type="range" id="wallpaperOpacity" min="0" max="100" value="100" oninput="previewWallpaperOpacity(this.value)" style="width:80px;height:4px;">
+              <span id="opacityValue" style="font-size:0.72rem;color:var(--text-secondary);min-width:30px;">100%</span>
+            </div>
+          </div>
+          <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:8px;">
+            <button class="btn-icon" onclick="uploadWallpaper()" style="width:auto;border-radius:10px;padding:6px 14px;font-size:0.75rem;gap:4px;">🖼 上传图片</button>
+            <button class="btn-icon" onclick="pickWallpaperGradient()" style="width:auto;border-radius:10px;padding:6px 14px;font-size:0.75rem;gap:4px;">🪐 渐变</button>
+            <button class="btn-icon" onclick="clearWallpaper()" style="width:auto;border-radius:10px;padding:6px 14px;font-size:0.75rem;gap:4px;color:#e55;">❌ 清除</button>
+            <button class="btn-icon" onclick="toggleParticles()" style="width:auto;border-radius:10px;padding:6px 14px;font-size:0.75rem;gap:4px;">✨ 粒子</button>
             <button class="btn-icon" onclick="saveWallpaper()" style="width:auto;border-radius:10px;padding:6px 14px;font-size:0.75rem;gap:4px;background:linear-gradient(135deg,var(--accent),#7c5cdb);color:#fff;border:none;">💾 保存应用</button>
           </div>
           <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px;">
@@ -933,8 +961,10 @@
           <div id="wallpaperPreview" style="width:100%;height:80px;border-radius:12px;border:1.5px solid var(--border-light);background:var(--settings-bg);overflow:hidden;display:flex;align-items:center;justify-content:center;font-size:0.75rem;color:var(--text-secondary);background-size:cover;background-position:center;">无壁纸</div>
           <input type="file" id="wallpaperUpload" accept="image/*" style="display:none" onchange="handleWallpaperUpload(event)">
         </div>
+      </div>
+      <div id="panelPwd" class="settings-panel">
         <div class="settings-field">
-          <label>🔐 设置密码 <span style="font-size:0.7rem;color:var(--text-secondary);font-weight:400;">（开启后进入设置需验证，5分钟内免重复输入）</span></label>
+          <label>🔐 设置密码 <span style="font-size:0.7rem;color:var(--text-secondary);font-weight:400;">（设置后右上角出现🔓锁按钮，解锁后关闭标签页前免验证）</span></label>
           <div style="display:flex;gap:8px;flex-direction:column;">
             <input id="settingsPassword" type="password" placeholder="输入新密码" style="width:100%;padding:11px 16px;border:1.5px solid var(--border-light);border-radius:14px;font-size:0.9rem;outline:none;background:var(--input-bg);color:var(--text);box-sizing:border-box;">
             <input id="settingsPassword2" type="password" placeholder="再次输入新密码确认" style="width:100%;padding:11px 16px;border:1.5px solid var(--border-light);border-radius:14px;font-size:0.9rem;outline:none;background:var(--input-bg);color:var(--text);box-sizing:border-box;">
@@ -1416,6 +1446,8 @@ function switchSettingsTab(panelId, btn) {
   document.getElementById('panel' + panelId.charAt(0).toUpperCase() + panelId.slice(1)).classList.add('active');
   if (panelId === 'sections') renderSettingsSections();
   if (panelId === 'search') renderSettingsSearch();
+  if (panelId === 'wallpaper') { updateWallpaperPreview(data.wallpaper, data.wallpaperType); updateFitButtons(data.wallpaperFit); }
+  if (panelId === 'pwd') { var ps = data.settingsPassword || ''; var el = document.getElementById('settingsPwdStatus'); if(el) el.textContent = ps ? '✅ 已设置密码' : '未设置密码'; }
 }
 
 var _pwdLocked = (function(){ try { return sessionStorage.getItem('nav_locked') !== 'false'; } catch(e){ return true; }})();
@@ -1588,6 +1620,12 @@ function pickWallpaperColor() {
   document.getElementById('wallpaperColorPicker').click();
 }
 
+var _wallpaperOpacity = 1;
+function previewWallpaperOpacity(val) {
+  _wallpaperOpacity = val / 100;
+  document.getElementById('opacityValue').textContent = val + '%';
+  document.documentElement.style.setProperty('--wallpaper-opacity', _wallpaperOpacity);
+}
 function previewWallpaperColor(color) {
   closeCustomDialog();
   _wallpaperPending = color;
