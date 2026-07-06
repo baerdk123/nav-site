@@ -2756,13 +2756,23 @@ function checkAllSites() {
   document.querySelectorAll('.status-dot').forEach(dot => {
     const url = dot.dataset.url;
     if (!url) return;
+    dot.className = 'status-dot';
     const start = Date.now();
-    const img = new Image();
-    img.onload = function() { dot.className = 'status-dot ' + (Date.now() - start < 3000 ? 'online' : 'slow'); };
-    img.onerror = function() { dot.className = 'status-dot offline'; };
-    try { const u = new URL(url); img.src = u.origin + '/favicon.ico?_=' + Date.now(); }
-    catch(e) { dot.className = 'status-dot offline'; }
-    setTimeout(() => { if (!img.complete) dot.className = 'status-dot slow'; }, 3000);
+    // 用 fetch + no-cors + HEAD 检测连通性（no-cors 无法读响应但能确认可达）
+    fetch(url, { method: 'HEAD', mode: 'no-cors', signal: AbortSignal.timeout(5000) })
+      .then(function() {
+        dot.className = 'status-dot ' + (Date.now() - start < 3000 ? 'online' : 'slow');
+      })
+      .catch(function() {
+        // no-cors HEAD 可能因某些策略失败，改用 GET
+        fetch(url, { method: 'GET', mode: 'no-cors', signal: AbortSignal.timeout(5000) })
+          .then(function() {
+            dot.className = 'status-dot ' + (Date.now() - start < 3000 ? 'online' : 'slow');
+          })
+          .catch(function() {
+            dot.className = 'status-dot offline';
+          });
+      });
   });
 }
 
