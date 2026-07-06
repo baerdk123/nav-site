@@ -1544,6 +1544,7 @@ function openSettings() {
 }
 
 function doOpenSettings() {
+  try {
   var saved = data.settingsPassword || "";
   document.getElementById('settingsTitle').value = data.title;
   document.getElementById('settingsSubtitle').value = data.subtitle;
@@ -1573,6 +1574,7 @@ function doOpenSettings() {
   updateWallpaperPreview(data.wallpaper, data.wallpaperType);
   updateFitButtons(data.wallpaperFit);
   document.getElementById('settingsOverlay').classList.add('show');
+  } catch(e) { console.error('doOpenSettings error:', e); }
 }
 
 function closeSettings(ev) {
