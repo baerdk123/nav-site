@@ -1291,7 +1291,7 @@ function render() {
       </a>`
     ).join('');
     return `
-      <div class="section ${s.cssClass || ''}${s.password ? ' locked' : ''}" data-si="${si}"
+      <div class="section ${s.cssClass || ''}${s.locked ? ' locked' : ''}" data-si="${si}"
            ondragover="onDragOverSection(event)" ondrop="onDropSection(event)" ondragleave="onDragLeaveSection(event)">
         <div class="section-header">
           <span class="section-title">${s.name}</span>
@@ -1432,6 +1432,14 @@ function togglePwdLock() {
         document.getElementById('lockBtn').textContent = '🔒';
         document.getElementById('lockBtn').title = '已解锁·点击锁定';
         document.getElementById('lockBtn').style.color = 'var(--accent)';
+        // 解锁所有加密分组
+        data.sections.forEach(function(sec, si) {
+          if (sec.locked) {
+            sec.locked = false;
+            var el = document.querySelector('.section[data-si="' + si + '"]');
+            if (el) el.classList.remove('locked');
+          }
+        });
         closePwdModal();
         showToast('✅ 已解锁（本次关机前免验证）', 'success');
       } else {
@@ -1446,6 +1454,13 @@ function togglePwdLock() {
     document.getElementById('lockBtn').textContent = '🔓';
     document.getElementById('lockBtn').title = '已锁定·点击解锁';
     document.getElementById('lockBtn').style.color = '';
+    // 锁定所有加密分组
+    data.sections.forEach(function(sec, si) {
+      if (sec.locked) {
+        var el = document.querySelector('.section[data-si="' + si + '"]');
+        if (el) el.classList.add('locked');
+      }
+    });
     showToast('🔒 已锁定', 'info');
   }
 }
@@ -1729,69 +1744,24 @@ function toggleSectionLock(si) {
   if (!section) return;
   const secData = data.sections[si];
   if (!secData) return;
-  if (section.classList.contains('locked')) {
-    var name = secData.name || '';
-    openPwdModal('🔒 分类已加密', '请输入「' + name + '」的密码解锁', function(input) {
-      if (input === secData.password) {
-        closePwdModal();
-        section.classList.remove('locked');
-        section.classList.toggle('collapsed');
-      } else {
-        document.getElementById('pwdModalError').classList.add('show');
-        document.getElementById('pwdModalInput').value = '';
-        document.getElementById('pwdModalInput').focus();
-      }
-    });
+  if (secData.locked) {
+    secData.locked = false;
+    section.classList.remove('locked');
   } else {
-    section.classList.toggle('collapsed');
+    secData.locked = true;
+    section.classList.add('locked');
   }
+  saveData();
 }
 
 function setSectionPassword(si) {
   const secData = data.sections[si];
   if (!secData) return;
-  var current = secData.password || '';
-  if (current) {
-    // 已有密码：先验证旧密码，再设置新密码（两次输入）
-    openPwdModal('🔒 验证原密码', '请输入当前分类密码', function(input) {
-      if (input === current) {
-        closePwdModal();
-        // 弹出新密码输入（两次）
-        setTimeout(function() {
-          var p1 = prompt('请输入新分类密码（留空清除密码）：');
-          if (p1 === null) return;
-          if (!p1.trim()) {
-            delete secData.password;
-            showToast('✅ 分类密码已清除', 'success');
-            saveData(); render();
-            return;
-          }
-          if (p1.length < 3) { showToast('密码至少3位', 'error'); return; }
-          var p2 = prompt('再次输入新密码确认：');
-          if (p2 === null) return;
-          if (p1 !== p2) { showToast('❌ 两次输入不一致', 'error'); return; }
-          secData.password = p1.trim();
-          showToast('✅ 分类密码已更新', 'success');
-          saveData(); render();
-        }, 300);
-      } else {
-        document.getElementById('pwdModalError').classList.add('show');
-        document.getElementById('pwdModalInput').value = '';
-        document.getElementById('pwdModalInput').focus();
-      }
-    });
-  } else {
-    // 无密码：直接设置新密码（两次输入）
-    var p1 = prompt('设置分类密码：');
-    if (!p1 || !p1.trim()) return;
-    if (p1.length < 3) { showToast('密码至少3位', 'error'); return; }
-    var p2 = prompt('再次输入密码确认：');
-    if (p2 === null) return;
-    if (p1 !== p2) { showToast('❌ 两次输入不一致', 'error'); return; }
-    secData.password = p1.trim();
-    showToast('✅ 分类密码已设置', 'success');
-    saveData(); render();
-  }
+  secData.locked = !secData.locked;
+  if (!secData.locked) delete secData.locked;
+  saveData();
+  render();
+  showToast(secData.locked ? '🔒 分组已加密' : '🔓 分组已解锁', 'success');
 }
 
 function renderSettingsSections() {
@@ -1801,8 +1771,8 @@ function renderSettingsSections() {
       <div style="display:flex;align-items:center;gap:8px;">
         <button class="s-btn" onclick="moveSection(${i},-1)" style="font-size:0.75rem;padding:2px 8px;" ${i===0?'disabled':''}>▲</button>
         <button class="s-btn" onclick="moveSection(${i},1)" style="font-size:0.75rem;padding:2px 8px;" ${i===data.sections.length-1?'disabled':''}>▼</button>
-        <span class="s-name">${s.password ? '🔒 ' : ''}${s.name}</span>
-        <button class="s-btn" onclick="setSectionPassword(${i})" title="设置/清除分类密码">${s.password ? '🔓' : '🔐'}</button>
+        <span class="s-name">${s.locked ? '🔒 ' : ''}${s.name}</span>
+        <button class="s-btn" onclick="setSectionPassword(${i})" title="设置/清除分类密码">${s.locked ? '🔓' : '🔐'}</button>
         <button class="s-btn" onclick="pickSectionColor(${i})" title="分类颜色">🎨</button>
         <button class="s-btn" onclick="renameSection(${i})">✏️</button>
         <button class="s-btn del" onclick="deleteSection(${i})">🗑️</button>
@@ -2438,7 +2408,7 @@ document.addEventListener('click', function(e) {
   const si = parseInt(section.dataset.si);
   const secData = data.sections[si];
   if (!secData) return;
-  if (secData.password) {
+  if (secData.locked || _pwdLocked) {
     toggleSectionLock(si);
     return;
   }
