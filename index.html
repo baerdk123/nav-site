@@ -1358,7 +1358,7 @@ function switchSettingsTab(panelId, btn) {
 }
 
 function openSettings() {
-  var saved = (function(){ try { return localStorage.getItem('nav_settings_pwd') || ''; } catch(e) { return ''; }})();
+  var saved = data.settingsPassword || "";
   if (saved) {
     openPwdModal('🔐 设置验证', '请输入设置密码以继续', function(input) {
       if (input === saved) {
@@ -1376,7 +1376,7 @@ function openSettings() {
 }
 
 function doOpenSettings() {
-  var saved = (function(){ try { return localStorage.getItem('nav_settings_pwd') || ''; } catch(e) { return ''; }})();
+  var saved = data.settingsPassword || "";
   document.getElementById('settingsTitle').value = data.title;
   document.getElementById('settingsSubtitle').value = data.subtitle;
   document.getElementById('settingsWidth').value = data.pageWidth || '960';
@@ -1411,9 +1411,17 @@ function closeSettings(ev) {
 // ===== 设置密码 =====
 function saveSettingsPassword() {
   const pwd = document.getElementById('settingsPassword').value.trim();
-  if (!pwd) { showToast('请输入密码', 'error'); return; }
+  if (!pwd) {
+    delete data.settingsPassword;
+    saveData();
+    document.getElementById('settingsPwdStatus').textContent = '未设置密码';
+    document.getElementById('settingsPassword').value = '';
+    showToast('✅ 密码已清除', 'success');
+    return;
+  }
   if (pwd.length < 3) { showToast('密码至少3位', 'error'); return; }
-  try { localStorage.setItem('nav_settings_pwd', pwd); } catch(e) {}
+  data.settingsPassword = pwd;
+  saveData();
   document.getElementById('settingsPwdStatus').textContent = '✅ 已设置密码';
   document.getElementById('settingsPassword').value = '';
   showToast('✅ 设置密码已保存', 'success');
