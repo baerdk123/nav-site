@@ -1425,7 +1425,7 @@ function togglePwdLock() {
   var saved = data.settingsPassword || "";
   if (!saved) { document.getElementById('lockBtn').style.display = 'none'; return; }
   if (_pwdLocked) {
-    openPwdModal('🔐 解锁', '请输入密码解锁，解锁后本次关机前无需再次验证', function(input) {
+    openPwdModal('🔐 解锁', '请输入密码解锁，解锁后关闭标签页前无需再次验证', function(input) {
       if (input === saved) {
         _pwdVerified = Date.now();
         _pwdLocked = false;
@@ -1443,7 +1443,7 @@ function togglePwdLock() {
           }
         });
         closePwdModal();
-        showToast('✅ 已解锁（本次关机前免验证）', 'success');
+        showToast('✅ 已解锁（关闭标签页前免验证）', 'success');
       } else {
         document.getElementById('pwdModalError').classList.add('show');
         document.getElementById('pwdModalInput').value = '';
