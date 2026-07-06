@@ -1541,7 +1541,9 @@ function openSettings() {
     }
   }
   doOpenSettings();
-}function doOpenSettings() {
+}
+
+function doOpenSettings() {
   var saved = data.settingsPassword || "";
   document.getElementById('settingsTitle').value = data.title;
   document.getElementById('settingsSubtitle').value = data.subtitle;
