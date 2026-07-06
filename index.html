@@ -2860,6 +2860,38 @@ setInterval(checkAllSites, 60000);
 restoreFromCloudAuto(function() {
   render();
 });
+// 每60秒从云端拉取最新数据，实现多设备自动同步
+var _syncVersion = Date.now();
+function pollCloudSync() {
+  var config = getCloudConfig();
+  if (!config.token) return;
+  cfKvApi('GET').then(function(resp) {
+    if (resp.success && resp.result !== null) {
+      var cloudData = resp.result;
+      if (typeof cloudData === 'string') cloudData = JSON.parse(cloudData);
+      if (cloudData.sections && cloudData.quickLinks) {
+        // 比对版本：用 sections 数量+quickLinks数量+时间戳做简单检测
+        var newVer = cloudData.sections.length + '-' + cloudData.quickLinks.length + '-' + (cloudData._ver || 0);
+        var oldVer = data.sections.length + '-' + data.quickLinks.length + '-' + (data._ver || 0);
+        if (newVer !== oldVer && JSON.stringify(cloudData) !== JSON.stringify(data)) {
+          data = cloudData;
+          localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+          render();
+          showToast('☁️ 云端数据已自动同步', 'info');
+        }
+      }
+    }
+  }).catch(function() {});
+}
+setInterval(pollCloudSync, 60000);
+
+// saveData 时更新版本戳
+var origSaveData = saveData;
+saveData = function() {
+  data._ver = (data._ver || 0) + 1;
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+  syncDataToCloud();
+};
 
 // 主题切换
 function toggleTheme() {
