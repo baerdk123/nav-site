@@ -1467,15 +1467,8 @@ function togglePwdLock() {
         document.getElementById('lockBtn').textContent = '🔒';
         document.getElementById('lockBtn').title = '已解锁·点击锁定';
         document.getElementById('lockBtn').style.color = 'var(--accent)';
-        // 解锁所有加密分组
-        data.sections.forEach(function(sec, si) {
-          if (sec.locked) {
-            sec.locked = false;
-            var el = document.querySelector('.section[data-si="' + si + '"]');
-            if (el) el.classList.remove('locked');
-          }
-        });
         closePwdModal();
+        render();
         showToast('✅ 已解锁（关闭标签页前免验证）', 'success');
       } else {
         document.getElementById('pwdModalError').classList.add('show');
@@ -1491,13 +1484,7 @@ function togglePwdLock() {
     document.getElementById('lockBtn').textContent = '🔓';
     document.getElementById('lockBtn').title = '已锁定·点击解锁';
     document.getElementById('lockBtn').style.color = '';
-    // 锁定所有加密分组
-    data.sections.forEach(function(sec, si) {
-      if (sec.locked) {
-        var el = document.querySelector('.section[data-si="' + si + '"]');
-        if (el) el.classList.add('locked');
-      }
-    });
+    render();
     showToast('🔒 已锁定', 'info');
   }
 }
