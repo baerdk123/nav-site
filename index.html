@@ -1310,7 +1310,7 @@ function closeModal(ev) {
 }
 
 function confirmModal() {
-  const emoji = document.getElementById('modalEmoji').value.trim() || '🔗';
+  const emoji = getIconFromModal();
   const name = document.getElementById('modalName').value.trim();
   const url = document.getElementById('modalUrl').value.trim();
   if (!name || !url) { alert('名称和网址不能为空'); return; }
