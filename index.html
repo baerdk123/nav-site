@@ -70,7 +70,7 @@
 
   body {
     font-family: -apple-system, BlinkMacSystemFont, 'SF Pro', 'PingFang SC', 'Microsoft YaHei', sans-serif;
-    background: var(--bg);
+    background-color: var(--bg);
     background-image: var(--wallpaper, none);
     background-size: cover;
     background-position: center;
@@ -918,8 +918,11 @@
             <button class="btn-icon" onclick="uploadWallpaper()" style="width:auto;border-radius:10px;padding:6px 14px;font-size:0.75rem;gap:4px;">🖼 图片</button>
             <button class="btn-icon" onclick="clearWallpaper()" style="width:auto;border-radius:10px;padding:6px 14px;font-size:0.75rem;gap:4px;color:#e55;">❌ 清除</button>
           </div>
-          <div id="wallpaperPreview" style="width:100%;height:60px;border-radius:12px;border:1.5px solid var(--border-light);background:var(--settings-bg);overflow:hidden;display:flex;align-items:center;justify-content:center;font-size:0.75rem;color:var(--text-secondary);">无壁纸</div>
-          <input type="file" id="wallpaperUpload" accept="image/*,.mp4,.webm" style="display:none" onchange="handleWallpaperUpload(event)">
+          <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:8px;">
+            <button class="btn-icon" onclick="saveWallpaper()" style="width:auto;border-radius:10px;padding:6px 14px;font-size:0.75rem;gap:4px;background:linear-gradient(135deg,var(--accent),#7c5cdb);color:#fff;border:none;">💾 保存应用</button>
+          </div>
+          <div id="wallpaperPreview" style="width:100%;height:80px;border-radius:12px;border:1.5px solid var(--border-light);background:var(--settings-bg);overflow:hidden;display:flex;align-items:center;justify-content:center;font-size:0.75rem;color:var(--text-secondary);background-size:cover;background-position:center;">无壁纸</div>
+          <input type="file" id="wallpaperUpload" accept="image/*" style="display:none" onchange="handleWallpaperUpload(event)">
         </div>
         <div class="settings-field">
           <label>🔐 设置密码 <span style="font-size:0.7rem;color:var(--text-secondary);font-weight:400;">（开启后进入设置需验证，5分钟内免重复输入）</span></label>
@@ -1282,9 +1285,8 @@ function render() {
       <div class="section ${s.cssClass || ''}${s.password ? ' locked' : ''}" data-si="${si}"
            ondragover="onDragOverSection(event)" ondrop="onDropSection(event)" ondragleave="onDragLeaveSection(event)">
         <div class="section-header">
-          <span class="section-title">${s.password ? '🔒 ' : ''}${s.name}</span>
+          <span class="section-title">${s.name}</span>
           <span style="display:flex;gap:4px;">
-            <button class="btn-add-link" onclick="event.stopPropagation();setSectionPassword(${si})" title="设置/清除分类密码">🔐</button>
             <button class="btn-add-link" onclick="event.stopPropagation();showAddModal('${s.id}')">＋</button>
           </span>
         </div>
@@ -1459,7 +1461,7 @@ function doOpenSettings() {
   renderSettingsSections();
   var pwdEl = document.getElementById('settingsPwdStatus');
   if (pwdEl) pwdEl.textContent = saved ? '✅ 已设置密码' : '未设置密码';
-  updateWallpaperPreview();
+  updateWallpaperPreview(data.wallpaper, data.wallpaperType);
   document.getElementById('settingsOverlay').classList.add('show');
 }
 
@@ -1468,26 +1470,26 @@ function closeSettings(ev) {
   document.getElementById('settingsOverlay').classList.remove('show');
 }
 
-// ===== 壁纸 =====
+// ===== 壁纸（预览+保存应用） =====
 var wallpaperColors = ['#1a1a2e','#16213e','#0f3460','#533483','#e94560','#f5f5f7','#f0f0f0','#2d2d2d','#1e3a5f','#4a1942','#1b4332','#0b525b'];
+var _wallpaperPending = null;
+var _wallpaperPendingType = null;
 
 function pickWallpaperColor() {
   var html = '<div style="display:grid;grid-template-columns:repeat(6,1fr);gap:8px;padding:8px 0;">';
   wallpaperColors.forEach(function(c) {
-    html += '<div style="width:36px;height:36px;border-radius:50%;background:' + c + ';cursor:pointer;border:2px solid var(--border-light);" data-color="' + c + '" onclick="selectWallpaperColor(this.dataset.color)"></div>';
+    html += '<div style="width:36px;height:36px;border-radius:50%;background:' + c + ';cursor:pointer;border:2px solid var(--border-light);" data-color="' + c + '" onclick="previewWallpaperColor(this.dataset.color)"></div>';
   });
   html += '</div>';
   showCustomDialog('🎨 选择壁纸颜色', html);
 }
 
-function selectWallpaperColor(color) {
+function previewWallpaperColor(color) {
   closeCustomDialog();
-  data.wallpaper = color;
-  data.wallpaperType = 'color';
-  delete data.wallpaperUrl;
-  applyWallpaper();
-  saveData();
-  updateWallpaperPreview();
+  _wallpaperPending = color;
+  _wallpaperPendingType = 'color';
+  applyWallpaperDirect(color, 'color');
+  updateWallpaperPreview(color, 'color');
 }
 
 function uploadWallpaper() {
@@ -1499,47 +1501,60 @@ function handleWallpaperUpload(e) {
   if (!file) return;
   var reader = new FileReader();
   reader.onload = function(ev) {
-    data.wallpaper = ev.target.result;
-    data.wallpaperType = 'image';
-    delete data.wallpaperColor;
-    applyWallpaper();
-    saveData();
-    updateWallpaperPreview();
+    _wallpaperPending = ev.target.result;
+    _wallpaperPendingType = 'image';
+    applyWallpaperDirect(_wallpaperPending, 'image');
+    updateWallpaperPreview(_wallpaperPending, 'image');
   };
   reader.readAsDataURL(file);
 }
 
 function clearWallpaper() {
-  delete data.wallpaper;
-  delete data.wallpaperType;
-  delete data.wallpaperUrl;
-  applyWallpaper();
-  saveData();
-  updateWallpaperPreview();
+  _wallpaperPending = null;
+  _wallpaperPendingType = null;
+  applyWallpaperDirect(null, null);
+  updateWallpaperPreview(null, null);
 }
 
-function applyWallpaper() {
-  var wt = data.wallpaperType;
-  var w = data.wallpaper;
+function saveWallpaper() {
+  if (_wallpaperPendingType === 'color' && _wallpaperPending) {
+    data.wallpaper = _wallpaperPending;
+    data.wallpaperType = 'color';
+    delete data.wallpaperUrl;
+  } else if (_wallpaperPendingType === 'image' && _wallpaperPending) {
+    data.wallpaper = _wallpaperPending;
+    data.wallpaperType = 'image';
+    delete data.wallpaperColor;
+  } else {
+    delete data.wallpaper;
+    delete data.wallpaperType;
+    delete data.wallpaperUrl;
+  }
+  saveData();
+  showToast('✅ 壁纸已保存并同步', 'success');
+  applyWallpaper();
+  updateWallpaperPreview(data.wallpaper, data.wallpaperType);
+}
+
+function applyWallpaperDirect(w, wt) {
   if (wt === 'color') {
     document.documentElement.style.setProperty('--wallpaper', 'none');
-    document.body.style.background = w;
+    document.body.style.backgroundColor = w;
   } else if (wt === 'image' && w) {
     document.documentElement.style.setProperty('--wallpaper', 'url(' + w + ')');
-    document.body.style.background = 'var(--bg)';
+    document.body.style.backgroundColor = '';
   } else {
     document.documentElement.style.setProperty('--wallpaper', 'none');
-    document.body.style.background = '';
+    document.body.style.backgroundColor = '';
   }
 }
 
-function updateWallpaperPreview() {
+function updateWallpaperPreview(w, wt) {
   var el = document.getElementById('wallpaperPreview');
   if (!el) return;
-  var wt = data.wallpaperType;
-  var w = data.wallpaper;
-  if (wt === 'color') {
+  if (wt === 'color' && w) {
     el.style.background = w;
+    el.style.backgroundSize = '';
     el.textContent = '';
   } else if (wt === 'image' && w) {
     el.style.background = 'url(' + w + ') center/cover';
@@ -1550,25 +1565,15 @@ function updateWallpaperPreview() {
   }
 }
 
-function showCustomDialog(title, bodyHtml) {
-  var d = document.getElementById('customDialog');
-  if (!d) {
-    d = document.createElement('div');
-    d.id = 'customDialog';
-    d.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.35);z-index:4000;display:none;align-items:center;justify-content:center;animation:fadeIn 0.15s ease;';
-    d.onclick = function() { closeCustomDialog(); };
-    document.body.appendChild(d);
-  }
-  d.innerHTML = '<div style="background:var(--modal-bg);border-radius:22px;padding:24px 28px;max-width:360px;width:90%;text-align:center;animation:popIn 0.2s ease;" onclick="event.stopPropagation()"><h3 style="font-size:1rem;font-weight:650;color:var(--text);margin-bottom:16px;">' + title + '</h3>' + bodyHtml + '<button style="margin-top:16px;padding:8px 24px;border:none;border-radius:12px;font-size:0.8rem;background:var(--settings-bg);color:var(--text-secondary);cursor:pointer;" onclick="closeCustomDialog()">取消</button></div>';
-  d.style.display = 'flex';
+function applyWallpaper() {
+  var w = data.wallpaper;
+  var wt = data.wallpaperType;
+  applyWallpaperDirect(w, wt);
+  _wallpaperPending = w;
+  _wallpaperPendingType = wt;
 }
 
-function closeCustomDialog() {
-  var d = document.getElementById('customDialog');
-  if (d) d.style.display = 'none';
-}
-
-// ===== 设置密码 =====
+// ===== 设置密码 =====// ===== 设置密码 =====
 function saveSettingsPassword() {
   const pwd = document.getElementById('settingsPassword').value.trim();
   const pwd2 = document.getElementById('settingsPassword2').value.trim();
