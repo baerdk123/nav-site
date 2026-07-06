@@ -75,7 +75,6 @@
     background-size: cover;
     background-position: center;
     background-attachment: fixed;
-    background-blend-mode: overlay;
     min-height: 100vh;
     padding: 48px 24px 80px;
     color: var(--text);
@@ -923,10 +922,11 @@
           <input type="file" id="wallpaperUpload" accept="image/*,.mp4,.webm" style="display:none" onchange="handleWallpaperUpload(event)">
         </div>
         <div class="settings-field">
-          <label>🔐 设置密码 <span style="font-size:0.7rem;color:var(--text-secondary);font-weight:400;">（开启后进入设置需验证）</span></label>
-          <div style="display:flex;gap:8px;">
-            <input id="settingsPassword" type="password" placeholder="输入设置密码" style="flex:1;padding:11px 16px;border:1.5px solid var(--border-light);border-radius:14px;font-size:0.9rem;outline:none;background:var(--input-bg);color:var(--text);">
-            <button class="btn-icon" onclick="saveSettingsPassword()" style="width:auto;border-radius:12px;padding:8px 18px;gap:5px;font-size:0.8rem;background:var(--accent);color:#fff;border:none;">保存</button>
+          <label>🔐 设置密码 <span style="font-size:0.7rem;color:var(--text-secondary);font-weight:400;">（开启后进入设置需验证，5分钟内免重复输入）</span></label>
+          <div style="display:flex;gap:8px;flex-direction:column;">
+            <input id="settingsPassword" type="password" placeholder="输入新密码" style="width:100%;padding:11px 16px;border:1.5px solid var(--border-light);border-radius:14px;font-size:0.9rem;outline:none;background:var(--input-bg);color:var(--text);box-sizing:border-box;">
+            <input id="settingsPassword2" type="password" placeholder="再次输入新密码确认" style="width:100%;padding:11px 16px;border:1.5px solid var(--border-light);border-radius:14px;font-size:0.9rem;outline:none;background:var(--input-bg);color:var(--text);box-sizing:border-box;">
+            <button class="btn-icon" onclick="saveSettingsPassword()" style="width:100%;border-radius:12px;padding:10px 18px;gap:5px;font-size:0.85rem;background:linear-gradient(135deg,var(--accent),#7c5cdb);color:#fff;border:none;">🔑 保存密码</button>
           </div>
           <div id="settingsPwdStatus" style="font-size:0.75rem;margin-top:6px;color:var(--text-secondary);"></div>
         </div>
@@ -1407,11 +1407,18 @@ function switchSettingsTab(panelId, btn) {
   if (panelId === 'search') renderSettingsSearch();
 }
 
+var _pwdVerified = 0;
+
 function openSettings() {
   var saved = data.settingsPassword || "";
   if (saved) {
-    openPwdModal('🔐 设置验证', '请输入设置密码以继续', function(input) {
+    if (_pwdVerified > 0 && Date.now() - _pwdVerified < 5 * 60 * 1000) {
+      doOpenSettings();
+      return;
+    }
+    openPwdModal('🔐 设置验证', '请输入设置密码以继续（验证后5分钟内免重复输入）', function(input) {
       if (input === saved) {
+        _pwdVerified = Date.now();
         closePwdModal();
         doOpenSettings();
       } else {
@@ -1564,19 +1571,23 @@ function closeCustomDialog() {
 // ===== 设置密码 =====
 function saveSettingsPassword() {
   const pwd = document.getElementById('settingsPassword').value.trim();
-  if (!pwd) {
+  const pwd2 = document.getElementById('settingsPassword2').value.trim();
+  if (!pwd && !pwd2) {
     delete data.settingsPassword;
     saveData();
     document.getElementById('settingsPwdStatus').textContent = '未设置密码';
     document.getElementById('settingsPassword').value = '';
+    document.getElementById('settingsPassword2').value = '';
     showToast('✅ 密码已清除', 'success');
     return;
   }
   if (pwd.length < 3) { showToast('密码至少3位', 'error'); return; }
+  if (pwd !== pwd2) { showToast('❌ 两次输入的密码不一致', 'error'); return; }
   data.settingsPassword = pwd;
   saveData();
   document.getElementById('settingsPwdStatus').textContent = '✅ 已设置密码';
   document.getElementById('settingsPassword').value = '';
+  document.getElementById('settingsPassword2').value = '';
   showToast('✅ 设置密码已保存', 'success');
 }
 
@@ -1608,21 +1619,47 @@ function setSectionPassword(si) {
   const secData = data.sections[si];
   if (!secData) return;
   var current = secData.password || '';
-  var hint = current ? '当前已设置密码，输入新密码覆盖，留空清除' : '设置此分类的访问密码';
-  openPwdModal('🔐 分类密码', hint, function(input) {
-    if (input !== null && input !== undefined) {
-      if (input.trim()) {
-        secData.password = input.trim();
-        showToast('✅ 分类密码已设置', 'success');
+  if (current) {
+    // 已有密码：先验证旧密码，再设置新密码（两次输入）
+    openPwdModal('🔒 验证原密码', '请输入当前分类密码', function(input) {
+      if (input === current) {
+        closePwdModal();
+        // 弹出新密码输入（两次）
+        setTimeout(function() {
+          var p1 = prompt('请输入新分类密码（留空清除密码）：');
+          if (p1 === null) return;
+          if (!p1.trim()) {
+            delete secData.password;
+            showToast('✅ 分类密码已清除', 'success');
+            saveData(); render();
+            return;
+          }
+          if (p1.length < 3) { showToast('密码至少3位', 'error'); return; }
+          var p2 = prompt('再次输入新密码确认：');
+          if (p2 === null) return;
+          if (p1 !== p2) { showToast('❌ 两次输入不一致', 'error'); return; }
+          secData.password = p1.trim();
+          showToast('✅ 分类密码已更新', 'success');
+          saveData(); render();
+        }, 300);
       } else {
-        delete secData.password;
-        showToast('✅ 分类密码已清除', 'success');
+        document.getElementById('pwdModalError').classList.add('show');
+        document.getElementById('pwdModalInput').value = '';
+        document.getElementById('pwdModalInput').focus();
       }
-      closePwdModal();
-      saveData();
-      render();
-    }
-  });
+    });
+  } else {
+    // 无密码：直接设置新密码（两次输入）
+    var p1 = prompt('设置分类密码：');
+    if (!p1 || !p1.trim()) return;
+    if (p1.length < 3) { showToast('密码至少3位', 'error'); return; }
+    var p2 = prompt('再次输入密码确认：');
+    if (p2 === null) return;
+    if (p1 !== p2) { showToast('❌ 两次输入不一致', 'error'); return; }
+    secData.password = p1.trim();
+    showToast('✅ 分类密码已设置', 'success');
+    saveData(); render();
+  }
 }
 
 function renderSettingsSections() {
@@ -1936,6 +1973,27 @@ function closeCtxMenu() {
 
 function ctxEdit() {
   if (!ctxTarget) return;
+  var saved = data.settingsPassword || "";
+  if (saved) {
+    if (!(_pwdVerified > 0 && Date.now() - _pwdVerified < 5 * 60 * 1000)) {
+      openPwdModal('🔐 密码验证', '编辑需要验证密码', function(input) {
+        if (input === saved) {
+          _pwdVerified = Date.now();
+          closePwdModal();
+          doCtxEdit();
+        } else {
+          document.getElementById('pwdModalError').classList.add('show');
+          document.getElementById('pwdModalInput').value = '';
+          document.getElementById('pwdModalInput').focus();
+        }
+      });
+      return;
+    }
+  }
+  doCtxEdit();
+}
+function doCtxEdit() {
+  if (!ctxTarget) return;
   if (ctxTarget.type === 'card') {
     const s = data.sections[ctxTarget.sectionIdx];
     const l = s.links[ctxTarget.linkIdx];
@@ -1964,9 +2022,30 @@ function ctxEdit() {
 
 function ctxDelete() {
   if (!ctxTarget) return;
+  var saved = data.settingsPassword || "";
+  if (saved) {
+    if (!(_pwdVerified > 0 && Date.now() - _pwdVerified < 5 * 60 * 1000)) {
+      openPwdModal('🔐 密码验证', '删除需要验证密码', function(input) {
+        if (input === saved) {
+          _pwdVerified = Date.now();
+          closePwdModal();
+          doCtxDelete();
+        } else {
+          document.getElementById('pwdModalError').classList.add('show');
+          document.getElementById('pwdModalInput').value = '';
+          document.getElementById('pwdModalInput').focus();
+        }
+      });
+      return;
+    }
+  }
+  doCtxDelete();
+}
+function doCtxDelete() {
+  if (!ctxTarget) return;
   let name = '';
   if (ctxTarget.type === 'card') name = data.sections[ctxTarget.sectionIdx]?.links[ctxTarget.linkIdx]?.name || '';
-  if (!name || !confirm(`确定删除「${name}」？`)) return;
+  if (!name || !confirm('确定删除「' + name + '」？')) return;
   if (ctxTarget.type === 'card') data.sections[ctxTarget.sectionIdx].links.splice(ctxTarget.linkIdx, 1);
   saveData(); render();
   closeCtxMenu();
