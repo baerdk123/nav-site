@@ -822,6 +822,7 @@
       <span id="cloudStatus" style="font-size:0.7rem;opacity:0.7;"></span>
     </div>
     <div class="header-actions">
+      <button class="btn-icon" id="lockBtn" onclick="togglePwdLock()" title="锁定/解锁" style="display:none;font-size:0.9rem;">🔓</button>
       <button class="btn-icon" id="themeBtn" onclick="toggleTheme()" title="切换主题">☀️</button>
       <button class="btn-icon" onclick="openSettings()" title="管理">⚙️</button>
     </div>
@@ -1417,32 +1418,79 @@ function switchSettingsTab(panelId, btn) {
   if (panelId === 'search') renderSettingsSearch();
 }
 
+var _pwdLocked = true;
 var _pwdVerified = 0;
 
-function openSettings() {
+function togglePwdLock() {
   var saved = data.settingsPassword || "";
-  if (saved) {
-    if (_pwdVerified > 0 && Date.now() - _pwdVerified < 5 * 60 * 1000) {
-      doOpenSettings();
-      return;
-    }
-    openPwdModal('🔐 设置验证', '请输入设置密码以继续（验证后5分钟内免重复输入）', function(input) {
+  if (!saved) { document.getElementById('lockBtn').style.display = 'none'; return; }
+  if (_pwdLocked) {
+    openPwdModal('🔐 解锁', '请输入密码解锁，解锁后本次关机前无需再次验证', function(input) {
       if (input === saved) {
         _pwdVerified = Date.now();
+        _pwdLocked = false;
+        document.getElementById('lockBtn').textContent = '🔒';
+        document.getElementById('lockBtn').title = '已解锁·点击锁定';
+        document.getElementById('lockBtn').style.color = 'var(--accent)';
         closePwdModal();
-        doOpenSettings();
+        showToast('✅ 已解锁（本次关机前免验证）', 'success');
       } else {
         document.getElementById('pwdModalError').classList.add('show');
         document.getElementById('pwdModalInput').value = '';
         document.getElementById('pwdModalInput').focus();
       }
     });
-    return;
+  } else {
+    _pwdLocked = true;
+    _pwdVerified = 0;
+    document.getElementById('lockBtn').textContent = '🔓';
+    document.getElementById('lockBtn').title = '已锁定·点击解锁';
+    document.getElementById('lockBtn').style.color = '';
+    showToast('🔒 已锁定', 'info');
   }
-  doOpenSettings();
 }
 
-function doOpenSettings() {
+function updateLockBtn() {
+  var saved = data.settingsPassword || "";
+  var btn = document.getElementById('lockBtn');
+  if (!btn) return;
+  if (!saved) { btn.style.display = 'none'; return; }
+  btn.style.display = '';
+  if (_pwdLocked) {
+    btn.textContent = '🔓';
+    btn.title = '已锁定·点击解锁';
+    btn.style.color = '';
+  } else {
+    btn.textContent = '🔒';
+    btn.title = '已解锁·点击锁定';
+    btn.style.color = 'var(--accent)';
+  }
+}
+
+function openSettings() {
+  var saved = data.settingsPassword || "";
+  if (saved) {
+    if (_pwdLocked) {
+      openPwdModal('🔐 密码验证', '请输入设置密码', function(input) {
+        if (input === saved) {
+          _pwdVerified = Date.now();
+          _pwdLocked = false;
+          document.getElementById('lockBtn').textContent = '🔒';
+          document.getElementById('lockBtn').title = '已解锁·点击锁定';
+          document.getElementById('lockBtn').style.color = 'var(--accent)';
+          closePwdModal();
+          doOpenSettings();
+        } else {
+          document.getElementById('pwdModalError').classList.add('show');
+          document.getElementById('pwdModalInput').value = '';
+          document.getElementById('pwdModalInput').focus();
+        }
+      });
+      return;
+    }
+  }
+  doOpenSettings();
+}function doOpenSettings() {
   var saved = data.settingsPassword || "";
   document.getElementById('settingsTitle').value = data.title;
   document.getElementById('settingsSubtitle').value = data.subtitle;
@@ -2803,6 +2851,7 @@ function stopParticles() {
 }
 
 // ===== 启动 =====
+updateLockBtn();
 // 先渲染，然后从云端拉取覆盖
 render();
 setTimeout(checkAllSites, 500);
