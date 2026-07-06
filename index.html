@@ -1572,6 +1572,10 @@ function saveWallpaper() {
     data.wallpaper = _wallpaperPending;
     data.wallpaperType = 'color';
     delete data.wallpaperUrl;
+  } else if (_wallpaperPendingType === 'gradient' && _wallpaperPending) {
+    data.wallpaper = _wallpaperPending;
+    data.wallpaperType = 'gradient';
+    delete data.wallpaperUrl;
   } else if (_wallpaperPendingType === 'image' && _wallpaperPending) {
     data.wallpaper = _wallpaperPending;
     data.wallpaperType = 'image';
@@ -1593,6 +1597,10 @@ function applyWallpaperDirect(w, wt, fit) {
   if (wt === 'color') {
     document.documentElement.style.setProperty('--wallpaper', 'none');
     document.body.style.backgroundColor = w;
+  } else if (wt === 'gradient' && w) {
+    document.documentElement.style.setProperty('--wallpaper', 'none');
+    document.body.style.background = w;
+    document.body.style.backgroundAttachment = 'fixed';
   } else if (wt === 'image' && w) {
     document.documentElement.style.setProperty('--wallpaper', 'url(' + w + ')');
     document.documentElement.style.setProperty('--wallpaper-size', getWallpaperFitStyle(fit));
@@ -1612,6 +1620,10 @@ function updateWallpaperPreview(w, wt, fit) {
     el.style.background = w;
     el.style.backgroundSize = '';
     el.style.backgroundRepeat = '';
+    el.textContent = '';
+  } else if (wt === 'gradient' && w) {
+    el.style.background = w;
+    el.style.backgroundSize = 'cover';
     el.textContent = '';
   } else if (wt === 'image' && w) {
     el.style.background = 'url(' + w + ') center/' + getWallpaperFitStyle(fit);
@@ -1743,6 +1755,7 @@ function renderSettingsSections() {
         <button class="s-btn" onclick="moveSection(${i},1)" style="font-size:0.75rem;padding:2px 8px;" ${i===data.sections.length-1?'disabled':''}>▼</button>
         <span class="s-name">${s.password ? '🔒 ' : ''}${s.name}</span>
         <button class="s-btn" onclick="setSectionPassword(${i})" title="设置/清除分类密码">${s.password ? '🔓' : '🔐'}</button>
+        <button class="s-btn" onclick="pickSectionColor(${i})" title="分类颜色">🎨</button>
         <button class="s-btn" onclick="renameSection(${i})">✏️</button>
         <button class="s-btn del" onclick="deleteSection(${i})">🗑️</button>
       </div>
@@ -2715,6 +2728,78 @@ function checkAllSites() {
     catch(e) { dot.className = 'status-dot offline'; }
     setTimeout(() => { if (!img.complete) dot.className = 'status-dot slow'; }, 3000);
   });
+}
+
+// ===== 粒子 =====
+var _particleRunning = false;
+var _particleAnimId = null;
+
+function toggleParticles() {
+  _particleRunning = !_particleRunning;
+  if (_particleRunning) {
+    startParticles();
+    showToast('✨ 粒子已开启', 'success');
+  } else {
+    stopParticles();
+    showToast('粒子已关闭', 'info');
+  }
+}
+
+function startParticles() {
+  var canvas = document.getElementById('particleCanvas');
+  if (!canvas) return;
+  var ctx = canvas.getContext('2d');
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight;
+  var particles = [];
+  var count = 60;
+  for (var i = 0; i < count; i++) {
+    particles.push({
+      x: Math.random() * canvas.width,
+      y: Math.random() * canvas.height,
+      vx: (Math.random() - 0.5) * 0.5,
+      vy: (Math.random() - 0.5) * 0.5,
+      r: Math.random() * 2 + 1,
+      a: Math.random() * 0.5 + 0.2
+    });
+  }
+  function draw() {
+    if (!_particleRunning) return;
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    for (var i = 0; i < particles.length; i++) {
+      var p = particles[i];
+      p.x += p.vx;
+      p.y += p.vy;
+      if (p.x < 0 || p.x > canvas.width) p.vx *= -1;
+      if (p.y < 0 || p.y > canvas.height) p.vy *= -1;
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+      ctx.fillStyle = 'rgba(139,111,230,' + p.a + ')';
+      ctx.fill();
+      for (var j = i + 1; j < particles.length; j++) {
+        var p2 = particles[j];
+        var dx = p.x - p2.x;
+        var dy = p.y - p2.y;
+        var dist = Math.sqrt(dx * dx + dy * dy);
+        if (dist < 150) {
+          ctx.beginPath();
+          ctx.moveTo(p.x, p.y);
+          ctx.lineTo(p2.x, p2.y);
+          ctx.strokeStyle = 'rgba(139,111,230,' + (0.1 * (1 - dist / 150)) + ')';
+          ctx.stroke();
+        }
+      }
+    }
+    _particleAnimId = requestAnimationFrame(draw);
+  }
+  draw();
+}
+
+function stopParticles() {
+  _particleRunning = false;
+  if (_particleAnimId) { cancelAnimationFrame(_particleAnimId); _particleAnimId = null; }
+  var canvas = document.getElementById('particleCanvas');
+  if (canvas) { canvas.width = 0; canvas.height = 0; }
 }
 
 // ===== 启动 =====
