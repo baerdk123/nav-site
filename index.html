@@ -828,8 +828,8 @@
       <option value="yandex">Yandex</option>
       <option value="baidu">百度</option>
     </select>
-    <input type="text" name="q" id="searchInput" placeholder="🔍 搜索..." autofocus>
-    <button type="submit">🔍</button>
+    <input type="text" name="q" id="searchInput" placeholder="搜索..." autofocus>
+    <button type="submit"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg></button>
   </form>
 
   <div id="quickLinks" class="quick-links"></div>
@@ -1980,7 +1980,7 @@ const form = document.getElementById('searchForm');
 
 // 从 searchEngines 变量生成选项
 sel.innerHTML = searchEngines.map(e => `<option value="${e.id}">${e.name}</option>`).join('');
-document.getElementById('searchInput').placeholder = '🔍 ' + (searchEngines.find(e => e.id === sel.value)?.name || '') + ' 搜索...';
+document.getElementById('searchInput').placeholder = (searchEngines.find(e => e.id === sel.value)?.name || '') + ' 搜索...';
 
 // 恢复上次选择
 try {
@@ -1993,7 +1993,7 @@ form.action = searchEngines.find(e => e.id === sel.value)?.url || searchEngines[
 sel.onchange = function() {
   form.action = searchEngines.find(e => e.id === sel.value)?.url || searchEngines[0].url;
   try { localStorage.setItem('search_engine', sel.value); } catch(e) {}
-  document.getElementById('searchInput').placeholder = '🔍 ' + (searchEngines.find(e => e.id === sel.value)?.name || '') + ' 搜索...';
+  document.getElementById('searchInput').placeholder = (searchEngines.find(e => e.id === sel.value)?.name || '') + ' 搜索...';
   document.getElementById('searchInput').focus();
 };
 
