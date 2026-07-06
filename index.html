@@ -1418,8 +1418,8 @@ function switchSettingsTab(panelId, btn) {
   if (panelId === 'search') renderSettingsSearch();
 }
 
-var _pwdLocked = true;
-var _pwdVerified = 0;
+var _pwdLocked = (function(){ try { return sessionStorage.getItem('nav_locked') !== 'false'; } catch(e){ return true; }})();
+var _pwdVerified = (function(){ try { return parseInt(sessionStorage.getItem('nav_pwd_time') || '0'); } catch(e){ return 0; }})();
 
 function togglePwdLock() {
   var saved = data.settingsPassword || "";
@@ -1429,6 +1429,8 @@ function togglePwdLock() {
       if (input === saved) {
         _pwdVerified = Date.now();
         _pwdLocked = false;
+        try { sessionStorage.setItem('nav_locked', 'false'); } catch(e) {}
+        try { sessionStorage.setItem('nav_pwd_time', String(Date.now())); } catch(e) {}
         document.getElementById('lockBtn').textContent = '🔒';
         document.getElementById('lockBtn').title = '已解锁·点击锁定';
         document.getElementById('lockBtn').style.color = 'var(--accent)';
@@ -1451,6 +1453,8 @@ function togglePwdLock() {
   } else {
     _pwdLocked = true;
     _pwdVerified = 0;
+    try { sessionStorage.setItem('nav_locked', 'true'); } catch(e) {}
+    try { sessionStorage.setItem('nav_pwd_time', '0'); } catch(e) {}
     document.getElementById('lockBtn').textContent = '🔓';
     document.getElementById('lockBtn').title = '已锁定·点击解锁';
     document.getElementById('lockBtn').style.color = '';
