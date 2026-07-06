@@ -72,7 +72,8 @@
     font-family: -apple-system, BlinkMacSystemFont, 'SF Pro', 'PingFang SC', 'Microsoft YaHei', sans-serif;
     background-color: var(--bg);
     background-image: var(--wallpaper, none);
-    background-size: cover;
+    background-size: var(--wallpaper-size, cover);
+    background-repeat: var(--wallpaper-repeat, no-repeat);
     background-position: center;
     background-attachment: fixed;
     min-height: 100vh;
@@ -918,8 +919,15 @@
             <button class="btn-icon" onclick="uploadWallpaper()" style="width:auto;border-radius:10px;padding:6px 14px;font-size:0.75rem;gap:4px;">🖼 图片</button>
             <button class="btn-icon" onclick="clearWallpaper()" style="width:auto;border-radius:10px;padding:6px 14px;font-size:0.75rem;gap:4px;color:#e55;">❌ 清除</button>
           </div>
-          <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:8px;">
+          <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px;">
             <button class="btn-icon" onclick="saveWallpaper()" style="width:auto;border-radius:10px;padding:6px 14px;font-size:0.75rem;gap:4px;background:linear-gradient(135deg,var(--accent),#7c5cdb);color:#fff;border:none;">💾 保存应用</button>
+          </div>
+          <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px;">
+            <button class="btn-icon" id="fitCover" onclick="setWallpaperFit('cover')" style="width:auto;border-radius:10px;padding:4px 12px;font-size:0.72rem;gap:3px;background:var(--accent);color:#fff;border:none;">🟥 充满</button>
+            <button class="btn-icon" id="fitContain" onclick="setWallpaperFit('contain')" style="width:auto;border-radius:10px;padding:4px 12px;font-size:0.72rem;gap:3px;">🟩 适应</button>
+            <button class="btn-icon" id="fitFill" onclick="setWallpaperFit('fill')" style="width:auto;border-radius:10px;padding:4px 12px;font-size:0.72rem;gap:3px;">🟧 拉伸</button>
+            <button class="btn-icon" id="fitRepeat" onclick="setWallpaperFit('repeat')" style="width:auto;border-radius:10px;padding:4px 12px;font-size:0.72rem;gap:3px;">🟤 平铺</button>
+            <button class="btn-icon" id="fitCenter" onclick="setWallpaperFit('center')" style="width:auto;border-radius:10px;padding:4px 12px;font-size:0.72rem;gap:3px;">⚫ 居中</button>
           </div>
           <div id="wallpaperPreview" style="width:100%;height:80px;border-radius:12px;border:1.5px solid var(--border-light);background:var(--settings-bg);overflow:hidden;display:flex;align-items:center;justify-content:center;font-size:0.75rem;color:var(--text-secondary);background-size:cover;background-position:center;">无壁纸</div>
           <input type="file" id="wallpaperUpload" accept="image/*" style="display:none" onchange="handleWallpaperUpload(event)">
@@ -1462,6 +1470,7 @@ function doOpenSettings() {
   var pwdEl = document.getElementById('settingsPwdStatus');
   if (pwdEl) pwdEl.textContent = saved ? '✅ 已设置密码' : '未设置密码';
   updateWallpaperPreview(data.wallpaper, data.wallpaperType);
+  updateFitButtons(data.wallpaperFit);
   document.getElementById('settingsOverlay').classList.add('show');
 }
 
@@ -1470,10 +1479,43 @@ function closeSettings(ev) {
   document.getElementById('settingsOverlay').classList.remove('show');
 }
 
-// ===== 壁纸（预览+保存应用） =====
+// ===== 壁纸（预览+保存应用+fit模式） =====
 var wallpaperColors = ['#1a1a2e','#16213e','#0f3460','#533483','#e94560','#f5f5f7','#f0f0f0','#2d2d2d','#1e3a5f','#4a1942','#1b4332','#0b525b'];
 var _wallpaperPending = null;
 var _wallpaperPendingType = null;
+var _wallpaperFitNames = {'cover':'🟥 充满','contain':'🟩 适应','fill':'🟧 拉伸','repeat':'🟤 平铺','center':'⚫ 居中'};
+
+function getWallpaperFitStyle(fit) {
+  if (fit === 'contain') return 'contain';
+  if (fit === 'fill') return '100% 100%';
+  if (fit === 'repeat') return 'auto';
+  if (fit === 'center') return 'auto';
+  return 'cover';
+}
+
+function getWallpaperRepeat(fit) {
+  return fit === 'repeat' ? 'repeat' : 'no-repeat';
+}
+
+function setWallpaperFit(fit) {
+  data.wallpaperFit = fit;
+  // 更新按钮高亮
+  document.querySelectorAll('[id^=fit]').forEach(function(b) { b.style.background = ''; b.style.color = ''; });
+  var btn = document.getElementById('fit' + fit.charAt(0).toUpperCase() + fit.slice(1));
+  if (btn) { btn.style.background = 'var(--accent)'; btn.style.color = '#fff'; }
+  // 预览应用fit模式
+  var w = _wallpaperPending || data.wallpaper;
+  var wt = _wallpaperPendingType || data.wallpaperType;
+  if (wt === 'image' && w) {
+    var fs = getWallpaperFitStyle(fit);
+    var rp = getWallpaperRepeat(fit);
+    document.documentElement.style.setProperty('--wallpaper-size', fs);
+    document.documentElement.style.setProperty('--wallpaper-repeat', rp);
+    // 预览框
+    var el = document.getElementById('wallpaperPreview');
+    if (el) { el.style.backgroundSize = fs; el.style.backgroundRepeat = rp; }
+  }
+}
 
 function pickWallpaperColor() {
   var html = '<div style="display:grid;grid-template-columns:repeat(6,1fr);gap:8px;padding:8px 0;">';
@@ -1488,8 +1530,9 @@ function previewWallpaperColor(color) {
   closeCustomDialog();
   _wallpaperPending = color;
   _wallpaperPendingType = 'color';
-  applyWallpaperDirect(color, 'color');
-  updateWallpaperPreview(color, 'color');
+  _wallpaperPendingFit = data.wallpaperFit || 'cover';
+  applyWallpaperDirect(color, 'color', _wallpaperPendingFit);
+  updateWallpaperPreview(color, 'color', _wallpaperPendingFit);
 }
 
 function uploadWallpaper() {
@@ -1503,8 +1546,9 @@ function handleWallpaperUpload(e) {
   reader.onload = function(ev) {
     _wallpaperPending = ev.target.result;
     _wallpaperPendingType = 'image';
-    applyWallpaperDirect(_wallpaperPending, 'image');
-    updateWallpaperPreview(_wallpaperPending, 'image');
+    var fit = data.wallpaperFit || 'cover';
+    applyWallpaperDirect(_wallpaperPending, 'image', fit);
+    updateWallpaperPreview(_wallpaperPending, 'image', fit);
   };
   reader.readAsDataURL(file);
 }
@@ -1516,6 +1560,7 @@ function clearWallpaper() {
   delete data.wallpaperType;
   delete data.wallpaperUrl;
   delete data.wallpaperColor;
+  delete data.wallpaperFit;
   applyWallpaperDirect(null, null);
   updateWallpaperPreview(null, null);
   saveData();
@@ -1535,6 +1580,7 @@ function saveWallpaper() {
     delete data.wallpaper;
     delete data.wallpaperType;
     delete data.wallpaperUrl;
+    delete data.wallpaperColor;
   }
   saveData();
   showToast('✅ 壁纸已保存并同步', 'success');
@@ -1542,12 +1588,15 @@ function saveWallpaper() {
   updateWallpaperPreview(data.wallpaper, data.wallpaperType);
 }
 
-function applyWallpaperDirect(w, wt) {
+function applyWallpaperDirect(w, wt, fit) {
+  fit = fit || data.wallpaperFit || 'cover';
   if (wt === 'color') {
     document.documentElement.style.setProperty('--wallpaper', 'none');
     document.body.style.backgroundColor = w;
   } else if (wt === 'image' && w) {
     document.documentElement.style.setProperty('--wallpaper', 'url(' + w + ')');
+    document.documentElement.style.setProperty('--wallpaper-size', getWallpaperFitStyle(fit));
+    document.documentElement.style.setProperty('--wallpaper-repeat', getWallpaperRepeat(fit));
     document.body.style.backgroundColor = '';
   } else {
     document.documentElement.style.setProperty('--wallpaper', 'none');
@@ -1555,20 +1604,31 @@ function applyWallpaperDirect(w, wt) {
   }
 }
 
-function updateWallpaperPreview(w, wt) {
+function updateWallpaperPreview(w, wt, fit) {
+  fit = fit || data.wallpaperFit || 'cover';
   var el = document.getElementById('wallpaperPreview');
   if (!el) return;
   if (wt === 'color' && w) {
     el.style.background = w;
     el.style.backgroundSize = '';
+    el.style.backgroundRepeat = '';
     el.textContent = '';
   } else if (wt === 'image' && w) {
-    el.style.background = 'url(' + w + ') center/cover';
+    el.style.background = 'url(' + w + ') center/' + getWallpaperFitStyle(fit);
+    el.style.backgroundRepeat = getWallpaperRepeat(fit);
     el.textContent = '';
   } else {
     el.style.background = '';
     el.textContent = '无壁纸';
   }
+}
+
+function updateFitButtons(fit) {
+  fit = fit || 'cover';
+  document.querySelectorAll('[id^=fit]').forEach(function(b) { b.style.background = ''; b.style.color = ''; });
+  var id = 'fit' + fit.charAt(0).toUpperCase() + fit.slice(1);
+  var btn = document.getElementById(id);
+  if (btn) { btn.style.background = 'var(--accent)'; btn.style.color = '#fff'; }
 }
 
 function applyWallpaper() {
@@ -1577,9 +1637,10 @@ function applyWallpaper() {
   applyWallpaperDirect(w, wt);
   _wallpaperPending = w;
   _wallpaperPendingType = wt;
+  updateFitButtons(data.wallpaperFit);
 }
 
-// ===== 设置密码 =====
+// ===== 设置密码 =====// ===== 设置密码 =====
 function saveSettingsPassword() {
   const pwd = document.getElementById('settingsPassword').value.trim();
   const pwd2 = document.getElementById('settingsPassword2').value.trim();
