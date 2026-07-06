@@ -379,12 +379,92 @@
   .section-social .nav-card:hover { border-color: #f97373; }
   .section-social .nav-card:hover { box-shadow: 0 8px 32px rgba(249,115,115,0.12); }
 
+  /* ---- Password Modal ---- */
+  .pwd-modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.35);
+    z-index: 3000;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    animation: fadeIn 0.15s ease;
+  }
+  .pwd-modal-overlay.show { display: flex; }
+  .pwd-modal {
+    background: var(--modal-bg);
+    border-radius: 22px;
+    width: 340px;
+    max-width: 90%;
+    padding: 32px 28px 24px;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.15);
+    animation: popIn 0.2s ease;
+    text-align: center;
+  }
+  .pwd-modal h3 {
+    font-size: 1.1rem;
+    font-weight: 650;
+    color: var(--text);
+    margin-bottom: 4px;
+  }
+  .pwd-modal .pwd-hint {
+    font-size: 0.82rem;
+    color: var(--text-secondary);
+    margin-bottom: 20px;
+  }
+  .pwd-modal input {
+    width: 100%;
+    padding: 13px 16px;
+    border: 1.5px solid var(--border-light);
+    border-radius: 14px;
+    font-size: 1rem;
+    outline: none;
+    background: var(--input-bg);
+    color: var(--text);
+    margin-bottom: 16px;
+    text-align: center;
+    letter-spacing: 2px;
+    transition: border-color 0.15s;
+  }
+  .pwd-modal input:focus { border-color: var(--accent); }
+  .pwd-modal .pwd-error {
+    font-size: 0.78rem;
+    color: #ef4444;
+    margin-bottom: 12px;
+    display: none;
+  }
+  .pwd-modal .pwd-error.show { display: block; }
+  .pwd-modal .pwd-actions {
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+  }
+  .pwd-modal .pwd-actions button {
+    padding: 11px 28px;
+    border: none;
+    border-radius: 12px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .pwd-modal .pwd-actions .pwd-cancel {
+    background: var(--settings-bg);
+    color: var(--text-secondary);
+  }
+  .pwd-modal .pwd-actions .pwd-cancel:hover { background: var(--settings-hover); }
+  .pwd-modal .pwd-actions .pwd-confirm {
+    background: linear-gradient(135deg, var(--accent), #7c5cdb);
+    color: #fff;
+  }
+  .pwd-modal .pwd-actions .pwd-confirm:hover { opacity: 0.9; }
+
   /* ---- Context Menu ---- */
   .ctx-menu {
     display: none;
     position: fixed;
     z-index: 2000;
-    background: rgba(255,255,255,0.92);
+    background: var(--ctx-bg);
     backdrop-filter: blur(20px);
     border-radius: 14px;
     box-shadow: 0 8px 40px rgba(0,0,0,0.10), 0 0 0 1px rgba(0,0,0,0.03);
@@ -413,10 +493,10 @@
     text-align: left;
     font-weight: 470;
   }
-  .ctx-item:hover { background: rgba(139,111,230,0.08); }
-  .ctx-item.danger { color: #e55; }
-  .ctx-item.danger:hover { background: #fef2f2; }
-  .ctx-divider { height: 1px; background: #eeeaf5; margin: 4px 12px; }
+  .ctx-item:hover { background: var(--accent-glow); }
+  .ctx-item.danger { color: #ef4444; }
+  .ctx-item.danger:hover { background: rgba(239,68,68,0.12); }
+  .ctx-divider { height: 1px; background: var(--divider); margin: 4px 12px; }
 
   /* ---- Drag indicator ---- */
   .drop-indicator {
@@ -834,6 +914,21 @@
     </div>
     <div class="settings-foot">
       <button class="btn-cancel" onclick="closeSettings()">关闭</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== 密码输入弹窗 ===== -->
+<div id="pwdModal" class="pwd-modal-overlay" onclick="closePwdModal(event)">
+  <div class="pwd-modal" onclick="event.stopPropagation()">
+    <h3 id="pwdModalTitle">🔐 请输入密码</h3>
+    <div class="pwd-hint" id="pwdModalHint">输入密码后点击确认</div>
+    <input id="pwdModalInput" type="password" placeholder="请输入密码" autocomplete="off"
+      onkeydown="if(event.key==='Enter')confirmPwdModal()">
+    <div class="pwd-error" id="pwdModalError">❌ 密码错误，请重试</div>
+    <div class="pwd-actions">
+      <button class="pwd-cancel" onclick="closePwdModal()">取消</button>
+      <button class="pwd-confirm" onclick="confirmPwdModal()">确认</button>
     </div>
   </div>
 </div>
@@ -1265,9 +1360,23 @@ function switchSettingsTab(panelId, btn) {
 function openSettings() {
   var saved = (function(){ try { return localStorage.getItem('nav_settings_pwd') || ''; } catch(e) { return ''; }})();
   if (saved) {
-    var input = prompt('请输入设置密码：');
-    if (input !== saved) { showToast('❌ 密码错误', 'error'); return; }
+    openPwdModal('🔐 设置验证', '请输入设置密码以继续', function(input) {
+      if (input === saved) {
+        closePwdModal();
+        doOpenSettings();
+      } else {
+        document.getElementById('pwdModalError').classList.add('show');
+        document.getElementById('pwdModalInput').value = '';
+        document.getElementById('pwdModalInput').focus();
+      }
+    });
+    return;
   }
+  doOpenSettings();
+}
+
+function doOpenSettings() {
+  var saved = (function(){ try { return localStorage.getItem('nav_settings_pwd') || ''; } catch(e) { return ''; }})();
   document.getElementById('settingsTitle').value = data.title;
   document.getElementById('settingsSubtitle').value = data.subtitle;
   document.getElementById('settingsWidth').value = data.pageWidth || '960';
@@ -1317,13 +1426,18 @@ function toggleSectionLock(si) {
   const secData = data.sections[si];
   if (!secData) return;
   if (section.classList.contains('locked')) {
-    const pwd = prompt('请输入分类密码解锁：');
-    if (pwd === secData.password) {
-      section.classList.remove('locked');
-      section.classList.toggle('collapsed');
-    } else {
-      showToast('❌ 密码错误', 'error');
-    }
+    var name = secData.name || '';
+    openPwdModal('🔒 分类已加密', '请输入「' + name + '」的密码解锁', function(input) {
+      if (input === secData.password) {
+        closePwdModal();
+        section.classList.remove('locked');
+        section.classList.toggle('collapsed');
+      } else {
+        document.getElementById('pwdModalError').classList.add('show');
+        document.getElementById('pwdModalInput').value = '';
+        document.getElementById('pwdModalInput').focus();
+      }
+    });
   } else {
     section.classList.toggle('collapsed');
   }
@@ -1332,18 +1446,22 @@ function toggleSectionLock(si) {
 function setSectionPassword(si) {
   const secData = data.sections[si];
   if (!secData) return;
-  const current = secData.password || '';
-  const pwd = prompt('设置分类密码' + (current ? '(当前已设置，留空清除)' : '') + '：', current);
-  if (pwd === null) return;
-  if (pwd.trim()) {
-    secData.password = pwd.trim();
-    showToast('✅ 分类密码已设置', 'success');
-  } else {
-    delete secData.password;
-    showToast('✅ 分类密码已清除', 'success');
-  }
-  saveData();
-  render();
+  var current = secData.password || '';
+  var hint = current ? '当前已设置密码，输入新密码覆盖，留空清除' : '设置此分类的访问密码';
+  openPwdModal('🔐 分类密码', hint, function(input) {
+    if (input !== null && input !== undefined) {
+      if (input.trim()) {
+        secData.password = input.trim();
+        showToast('✅ 分类密码已设置', 'success');
+      } else {
+        delete secData.password;
+        showToast('✅ 分类密码已清除', 'success');
+      }
+      closePwdModal();
+      saveData();
+      render();
+    }
+  });
 }
 
 function renderSettingsSections() {
@@ -1946,6 +2064,29 @@ document.addEventListener('click', function(e) {
   }
   section.classList.toggle('collapsed');
 });
+
+// ===== 密码弹窗 =====
+var pwdModalCallback = null;
+
+function openPwdModal(title, hint, callback) {
+  pwdModalCallback = callback;
+  document.getElementById('pwdModalTitle').textContent = title;
+  document.getElementById('pwdModalHint').textContent = hint;
+  document.getElementById('pwdModalInput').value = '';
+  document.getElementById('pwdModalError').classList.remove('show');
+  document.getElementById('pwdModal').classList.add('show');
+  setTimeout(function(){ document.getElementById('pwdModalInput').focus(); }, 100);
+}
+
+function closePwdModal() {
+  document.getElementById('pwdModal').classList.remove('show');
+  pwdModalCallback = null;
+}
+
+function confirmPwdModal() {
+  const val = document.getElementById('pwdModalInput').value;
+  if (pwdModalCallback) pwdModalCallback(val);
+}
 
 // ===== 分类排序（设置里） =====
 function moveSection(idx, dir) {
