@@ -823,6 +823,16 @@
   </div>
 </div>
 
+
+  <!-- 批量操作栏 -->
+  <div id="batchBar" style="display:none;position:fixed;bottom:0;left:0;right:0;z-index:100;background:var(--modal-bg);border-top:1px solid var(--border-light);padding:12px 20px;justify-content:space-between;align-items:center;">
+    <span id="batchCount" style="font-size:0.85rem;">已选 0 个</span>
+    <div style="display:flex;gap:8px;">
+      <button class="btn-icon" onclick="batchMoveLinks()" style="width:auto;border-radius:12px;padding:8px 16px;gap:5px;font-size:0.8rem;">📦 移动到…</button>
+      <button class="btn-icon" onclick="batchDeleteLinks()" style="width:auto;border-radius:12px;padding:8px 16px;gap:5px;font-size:0.8rem;color:#ef4444;">🗑️ 删除选中</button>
+      <button class="btn-icon" onclick="exitBatchMode()" style="width:auto;border-radius:12px;padding:8px 16px;gap:5px;font-size:0.8rem;">✕ 退出</button>
+    </div>
+  </div>
 <!-- ===== 设置弹窗 ===== -->
 <!-- ===== 设置弹窗 ===== -->
 <div id="settingsOverlay" class="modal-overlay" onclick="closeSettings(event)">
@@ -868,7 +878,9 @@
           </div>
         </div>
         <div class="settings-field">
-
+          <label>💾 数据备份 <span style="font-size:0.7rem;color:var(--text-secondary);font-weight:400;">导出到本地文件</span></label>
+          <div id="backupReminder" style="margin-top:4px;font-size:0.78rem;"></div>
+        </div>
       </div>
     </div>
       <div id="panelWallpaper" class="settings-panel">
@@ -1226,7 +1238,9 @@ function render() {
     const linksHtml = s.links.map((l, li) =>
       `<a class="nav-card" href="${l.url}" target="_blank" draggable="true"
           data-type="card" data-si="${si}" data-li="${li}"
-          ondragstart="onDragStart(event)" ondragend="onDragEnd(event)">
+          ondragstart="onDragStart(event)" ondragend="onDragEnd(event)"
+          style="${_batchMode ? 'padding-top:28px;' : ''}">
+        ${_batchMode ? '<input type="checkbox" class="batch-cb" onchange="updateBatchCount()" style="position:absolute;top:4px;left:4px;z-index:2;width:16px;height:16px;cursor:pointer;">' : ''}
         <span class="emoji">${(l.emojiType === 'svg' || l.emojiType === 'img') ? '<img src="' + l.emoji + '" style="width:var(--icon-size,26px);height:var(--icon-size,26px);border-radius:4px;">' : l.emoji}</span>
         <span class="status-dot" data-url="${l.url}"></span>
         <span class="label">${l.name}</span>
@@ -1294,10 +1308,8 @@ function showAddModal(target) {
   document.getElementById('imgUpload').value = '';
 
   const sel = document.getElementById('modalSection');
-  sel.innerHTML = '<option value="__quick__">快速链接栏</option>' +
-    data.sections.map(s => `<option value="${s.id}">${s.name}</option>`).join('');
-  if (target !== 'quick') sel.value = target;
-  sel.style.display = target === 'quick' ? 'none' : 'block';
+  sel.innerHTML = data.sections.map(s => `<option value="${s.id}">${s.name}</option>`).join('');
+  sel.value = target || (data.sections[0]?.id || '');
 
   document.getElementById('modalOverlay').classList.add('show');
 }
@@ -1327,21 +1339,13 @@ function confirmModal() {
     }
     saveData(); render(); closeModal(); return;
   }
-  if (modalMode && modalMode.type === 'quick') {
-    var ql = { icon: 'svg', name, url };
-    if (getIconType(emoji) === 'img') { ql.icon = 'img'; ql.emojiData = emoji; }
-    data.quickLinks[modalMode.linkIdx] = ql;
-    saveData(); render(); closeModal(); return;
-  }
+  // edit quick removed
 
   const sectionId = document.getElementById('modalSection').value;
   const newItem = { emoji, name, url };
   if (getIconType(emoji) === 'img') newItem.emojiType = 'img';
-  if (sectionId === '__quick__') {
-    var qlItem = { icon: 'svg', name, url };
-    if (getIconType(emoji) === 'img') { qlItem.icon = 'img'; qlItem.emojiData = emoji; }
-    data.quickLinks.push(qlItem);
-  } else {
+  // __quick__ removed
+  {
     const s = data.sections.find(x => x.id === sectionId);
     if (s) s.links.push(newItem);
   }
@@ -2726,6 +2730,7 @@ function stopParticles() {
 
 // ===== 启动 =====
 updateLockBtn();
+checkBackupReminder();
 // 先从 localStorage 渲染，再等云端数据覆盖
 render();
 setTimeout(checkAllSites, 500);
@@ -2799,7 +2804,97 @@ document.getElementById('pageTitle').ondblclick = function(e) {
     render();
   }
 };
-</script>
+
+
+function changePassword() {
+  var saved = data.settingsPassword || '';
+  if (!saved) { showToast('请先设置密码', 'error'); return; }
+  if (_pwdLocked) { showToast('请先解锁再修改密码', 'error'); return; }
+  var oldPwd = prompt('请输入旧密码：');
+  if (!oldPwd) return;
+  if (oldPwd !== saved) { showToast('旧密码错误', 'error'); return; }
+  var new1 = prompt('请输入新密码（至少3位）：');
+  if (!new1 || new1.length < 3) { showToast('密码至少3位', 'error'); return; }
+  var new2 = prompt('请再次输入新密码：');
+  if (new1 !== new2) { showToast('两次密码不一致', 'error'); return; }
+  data.settingsPassword = new1;
+  saveData();
+  showToast('密码已修改', 'success');
+}
+
+// ===== 备份提醒 =====
+function checkBackupReminder() {
+  var el = document.getElementById('backupReminder');
+  if (!el) return;
+  var last = parseInt(localStorage.getItem('nav_backup_time') || '0');
+  if (!last) {
+    el.innerHTML = '⚠️ 尚未备份 <button class="btn-icon" onclick="exportData();localStorage.setItem('nav_backup_time',Date.now().toString());checkBackupReminder()" style="width:auto;border-radius:10px;padding:4px 12px;font-size:0.7rem;gap:4px;">💾 立即备份</button>';
+  } else {
+    var days = Math.floor((Date.now() - last) / 86400000);
+    if (days > 7) {
+      el.innerHTML = '⚠️ 距上次备份已 ' + days + ' 天 <button class="btn-icon" onclick="exportData();localStorage.setItem('nav_backup_time',Date.now().toString());checkBackupReminder()" style="width:auto;border-radius:10px;padding:4px 12px;font-size:0.7rem;gap:4px;">💾 重新备份</button>';
+    } else {
+      el.innerHTML = '✅ 最近备份：' + days + ' 天前';
+    }
+  }
+}
+
+// ===== 批量操作 =====
+var _batchMode = false;
+function toggleBatchMode() {
+  _batchMode = !_batchMode;
+  render();
+  document.getElementById('batchBar').style.display = _batchMode ? 'flex' : 'none';
+  if (!_batchMode) updateBatchCount();
+}
+function updateBatchCount() {
+  var n = document.querySelectorAll('.batch-cb:checked').length;
+  var el = document.getElementById('batchCount');
+  if (el) el.textContent = '已选 ' + n + ' 个';
+}
+function getChecked() {
+  var res = [];
+  document.querySelectorAll('.batch-cb:checked').forEach(function(cb) {
+    var card = cb.closest('[data-si]');
+    if (card) {
+      res.push({ si: parseInt(card.dataset.si), li: parseInt(card.dataset.li) });
+    }
+  });
+  return res;
+}
+function batchDeleteLinks() {
+  var sel = getChecked();
+  if (!sel.length) { showToast('请先选择链接', 'error'); return; }
+  if (!confirm('确定删除选中的 ' + sel.length + ' 个链接？')) return;
+  sel.sort(function(a,b) { return b.si - a.si || b.li - a.li; });
+  sel.forEach(function(item) { data.sections[item.si].links.splice(item.li, 1); });
+  saveData(); render(); showToast('已删除 ' + sel.length + ' 个链接', 'success');
+  exitBatchMode();
+}
+function batchMoveLinks() {
+  var sel = getChecked();
+  if (!sel.length) { showToast('请先选择链接', 'error'); return; }
+  var names = data.sections.map(function(s,i) { return (i+1)+'. '+s.name; }).join('
+');
+  var input = prompt('选择目标分类（输入数字）：
+' + names);
+  if (!input) return;
+  var idx = parseInt(input) - 1;
+  if (isNaN(idx) || idx < 0 || idx >= data.sections.length) { showToast('编号无效', 'error'); return; }
+  sel.sort(function(a,b) { return a.si - b.si || a.li - b.li; });
+  sel.forEach(function(item) {
+    var link = data.sections[item.si].links.splice(item.li, 1)[0];
+    if (link) data.sections[idx].links.push(link);
+  });
+  saveData(); render(); showToast('已移动 ' + sel.length + ' 个链接', 'success');
+  exitBatchMode();
+}
+function exitBatchMode() {
+  _batchMode = false;
+  updateBatchCount();
+  document.getElementById('batchBar').style.display = 'none';
+  render();
+}</script>
 
 <!-- ===== 密码输入弹窗 ===== -->
 <!-- ===== 记事本弹窗 ===== -->
