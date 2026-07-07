@@ -803,6 +803,13 @@
           </div>
         </div>
         <div class="settings-field">
+          <label>数据备份</label>
+          <div style="display:flex;gap:8px;flex-wrap:wrap;">
+            <button class="btn-icon" onclick="exportData()" style="width:auto;border-radius:12px;padding:8px 16px;gap:5px;font-size:0.8rem;">📤 导出到电脑</button>
+            <button class="btn-icon" onclick="importData()" style="width:auto;border-radius:12px;padding:8px 16px;gap:5px;font-size:0.8rem;">📥 从文件导入</button>
+          </div>
+        </div>
+        <div class="settings-field">
 
       </div>
     </div>
@@ -1654,8 +1661,7 @@ function renderSettingsSections() {
     <div style="margin-top:16px;padding-top:16px;border-top:1.5px solid var(--divider);">
       <div style="display:flex;gap:8px;flex-wrap:wrap;">
         <button class="btn-icon" onclick="fetchAllIcons()" style="width:auto;border-radius:12px;padding:8px 16px;gap:5px;font-size:0.8rem;background:linear-gradient(135deg,var(--accent),#4a5ae0);color:#fff;border:none;">🔄 获取图标</button>
-        <button class="btn-icon" onclick="exportData()" style="width:auto;border-radius:12px;padding:8px 16px;gap:5px;font-size:0.8rem;">📤 导出数据</button>
-        <button class="btn-icon" onclick="importData()" style="width:auto;border-radius:12px;padding:8px 16px;gap:5px;font-size:0.8rem;">📥 导入数据</button>
+
       </div>
       <div style="margin-top:12px;text-align:center;">
         <button class="btn-icon" onclick="saveData();render();renderSettingsSections();showToast('✅ 排序已保存','success')" style="width:auto;border-radius:12px;padding:10px 28px;gap:5px;font-size:0.85rem;background:linear-gradient(135deg,var(--accent),#7c5cdb);color:#fff;border:none;">💾 保存排序</button>
