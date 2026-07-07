@@ -1050,17 +1050,9 @@ try {
   }
 } catch(e) {}
 
-// 自动云同步配置
-const CLOUD_CONFIG_KEY = 'nav_cloud_config';
-
+// 云同步 — Token 由 Pages Function 环境变量 KV_TOKEN 管理，前端无需配置
 function getCloudConfig() {
-  try {
-    return JSON.parse(localStorage.getItem(CLOUD_CONFIG_KEY)) || { token: '', accountId: '', kvId: '' };
-  } catch(e) { return { token: '', accountId: '', kvId: '' }; }
-}
-
-function saveCloudConfig(config) {
-  localStorage.setItem(CLOUD_CONFIG_KEY, JSON.stringify(config));
+  return { enabled: true };
 }
 
 function showCloudStatus(msg, isError) {
@@ -1084,7 +1076,6 @@ function cfKvApi(method, body) {
 
 function syncDataToCloud() {
   const config = getCloudConfig();
-  if (!config.token) return;
   if (cloudSyncTimer) clearTimeout(cloudSyncTimer);
   cloudSyncTimer = setTimeout(function() {
     cfKvApi('PUT', JSON.stringify(data)).then(function(r) {
@@ -1097,7 +1088,6 @@ function syncDataToCloud() {
 
 function restoreFromCloudAuto(callback) {
   const config = getCloudConfig();
-  if (!config.token) { if(callback) callback(); return; }
   showCloudStatus('☁️');
   cfKvApi('GET').then(function(resp) {
     if (resp.success && resp.result !== null) {
@@ -2553,8 +2543,7 @@ function loadNotepadFromGist(callback) {
 
 function setupNotepadGist() {
   // 复用云同步的 token
-  const config = getCloudConfig();
-  let token = config.token;
+  let token = localStorage.getItem(nav_gist_token);
   if (!token) {
     token = prompt('请输入 GitHub Token（需要 gist 权限，用于同步记事本）：');
     if (!token) return;
@@ -2712,7 +2701,6 @@ restoreFromCloudAuto(function() {
 var _lastCloudData = '';
 function pollCloudSync() {
   var config = getCloudConfig();
-  if (!config.token) return;
   cfKvApi('GET').then(function(resp) {
     if (resp.success && resp.result !== null) {
       var cloudStr = typeof resp.result === 'string' ? resp.result : JSON.stringify(resp.result);
