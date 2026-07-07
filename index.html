@@ -2739,11 +2739,12 @@ function stopParticles() {
 
 // ===== 启动 =====
 updateLockBtn();
-// 先等云端数据，再渲染
+// 先从 localStorage 渲染，再等云端数据覆盖
+render();
+setTimeout(checkAllSites, 500);
+setInterval(checkAllSites, 60000);
 restoreFromCloudAuto(function() {
   render();
-  setTimeout(checkAllSites, 500);
-  setInterval(checkAllSites, 60000);
 });
 // 每60秒从云端拉取最新数据，实现多设备自动同步
 var _lastCloudData = '';
