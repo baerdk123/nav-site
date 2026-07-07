@@ -2256,43 +2256,6 @@ function fetchAllIcons() {
   processNext();
 }
 
-// ===== 云端备份（GitHub Gist）=====
-function exportData() {
-    const token2 = prompt('请输入 GitHub Token（需要 gist 权限）：');
-    if (!token2) return;
-    const json = JSON.stringify(data, null, 2);
-    const filename = 'nav-data-' + new Date().toISOString().slice(0,10) + '.json';
-    fetch('https://api.github.com/gists', {
-      headers: {'Authorization': 'token ' + token2, 'Accept': 'application/vnd.github.v3+json'}
-    }).then(r => r.json()).then(gists => {
-      const existing = Array.isArray(gists) ? gists.find(g => Object.keys(g.files||{}).some(fn => fn.startsWith('nav-data-'))) : null;
-      const files = {}; files[filename] = { content: json };
-      if (existing) {
-        return fetch(existing.url, { method: 'PATCH', headers: {'Authorization': 'token ' + token2, 'Content-Type': 'application/json'}, body: JSON.stringify({ files }) }).then(r => r.json());
-      } else {
-        return fetch('https://api.github.com/gists', { method: 'POST', headers: {'Authorization': 'token ' + token2, 'Content-Type': 'application/json'}, body: JSON.stringify({ description: '导航数据备份', public: false, files }) }).then(r => r.json());
-      }
-    }).then(result => {
-      if (result.html_url) { alert('备份成功！'); localStorage.setItem('nav_gist_url', result.html_url); }
-      else { alert('备份失败：' + (result.message || '未知错误')); }
-    }).catch(err => alert('网络错误：' + err.message));
-}
-
-function importData() {
-    const token2 = prompt('请输入 GitHub Token：');
-    if (!token2) return;
-    const gistUrl = localStorage.getItem('nav_gist_url');
-    if (!gistUrl) { alert('没有找到备份记录'); return; }
-    fetch('https://api.github.com/gists/' + gistUrl.split('/').pop(), {
-      headers: {'Authorization': 'token ' + token2, 'Accept': 'application/vnd.github.v3+json'}
-    }).then(r => r.json()).then(gist => {
-      const fc = Object.values(gist.files || {})[0];
-      if (!fc) { alert('Gist 中没有数据'); return; }
-      const imported = JSON.parse(fc.content);
-      if (confirm('确定从云端恢复？当前数据将被覆盖！')) { data = imported; saveData(); render(); alert('恢复成功！'); }
-    }).catch(err => alert('恢复失败：' + err.message));
-}
-
 // ===== 记事本 =====
 const NOTEPAD_KEY = 'nav_notepad_content';
 const NOTEPAD_GIST_KEY = 'nav_notepad_gist_id';
