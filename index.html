@@ -89,7 +89,7 @@
   /* ---- Header ---- */
   .header {
     text-align: center;
-    margin-bottom: 40px;
+    margin-bottom: 20px;
     position: relative;
   }
   .header h1 {
@@ -211,49 +211,17 @@
   }
   .search-bar button:hover { opacity: 0.88; }
 
-  /* ---- Quick Links ---- */
-  .quick-links {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 10px;
-    justify-content: center;
-    margin-bottom: 40px;
-    padding: 0 4px;
-  }
-  .quick-link {
-    display: flex;
-    align-items: center;
-    gap: 7px;
-    padding: 10px 18px;
-    border-radius: 40px;
-    background: var(--card-bg);
-    backdrop-filter: blur(12px);
-    border: 1.5px solid var(--card-border);
-    color: var(--text);
-    text-decoration: none;
-    font-size: 0.85rem;
-    font-weight: 510;
-    transition: all var(--transition);
-    box-shadow: var(--shadow);
-  }
-  .quick-link:hover {
-    background: rgba(255,255,255,0.92);
-    border-color: var(--accent);
-    transform: translateY(-2px) scale(1.02);
-    box-shadow: var(--shadow-hover);
-  }
-  .quick-link .icon { font-size: 1.05rem; line-height: 1; }
-
+  /* ---- Quick Links ---- removed */
   /* ---- Section ---- */
   .section {
-    margin-bottom: 36px;
+    margin-bottom: 18px;
     position: relative;
   }
   .section-header {
     display: flex;
     align-items: center;
     gap: 10px;
-    margin-bottom: 14px;
+    margin-bottom: 7px;
     padding-left: 4px;
   }
   .section-header::before {
@@ -523,15 +491,7 @@
     outline: 2px dashed rgba(139,111,230,0.25);
     outline-offset: 2px;
   }
-  .quick-links.drag-hover {
-    background: rgba(139,111,230,0.05);
-    border-radius: 40px;
-    padding: 14px 20px;
-    margin: -14px -20px;
-    transition: background 0.15s;
-    outline: 2px dashed rgba(139,111,230,0.25);
-    outline-offset: 2px;
-  }
+
 
   /* ---- Trash zone ---- */
   .trash-zone {
@@ -800,7 +760,6 @@
     .settings-item .s-url { display: none; }
     .settings-body { padding: 16px; }
     .settings-item { font-size: 0.82rem; }
-    .quick-link { padding: 8px 14px; font-size: 0.8rem; }
   }
 </style>
 </head>
@@ -832,7 +791,7 @@
     <button type="submit" style="font-size:0.85rem;white-space:nowrap;flex-shrink:0;padding:14px 20px;">搜</button>
   </form>
 
-  <div id="quickLinks" class="quick-links"></div>
+  
   <div id="sectionContainer"></div>
 
 </div>
@@ -1272,16 +1231,7 @@ function render() {
   applyIconSize();
   applyWallpaper();
 
-  const ql = document.getElementById('quickLinks');
-  ql.innerHTML = data.quickLinks.map((l, i) =>
-    `<a class="quick-link" href="${l.url}" target="_blank" draggable="true"
-        data-type="quick" data-idx="${i}"
-        ondragstart="onDragStart(event)" ondragend="onDragEnd(event)">
-      <span class="icon">${l.icon === 'svg' ? renderSVGIcon(l.name) : (l.icon === 'img' ? '<img src="' + l.emojiData + '" style="width:var(--ql-icon-size,18px);height:var(--ql-icon-size,18px);border-radius:4px;">' : l.icon)}</span>${l.name}</a>`
-  ).join('');
-  ql.ondragover = onDragOverQuick;
-  ql.ondrop = onDropQuick;
-  ql.ondragleave = onDragLeaveQuick;
+  // Quick links render removed
 
   const container = document.getElementById('sectionContainer');
   container.innerHTML = data.sections.map((s, si) => {
@@ -2217,52 +2167,16 @@ function onDragEnd(e) {
   const el = e.target.closest('[draggable]');
   if (el) el.classList.remove('dragging');
   document.getElementById('trashZone').classList.remove('show', 'drag-over');
-  document.querySelectorAll('.section.drag-hover,.quick-links.drag-hover').forEach(el => el.classList.remove('drag-hover'));
+  document.querySelectorAll('.section.drag-hover').forEach(el => el.classList.remove('drag-hover'));
   hideDropIndicator();
   dragData = null;
 }
 
-function onDragOverQuick(e) {
-  e.preventDefault();
-  e.dataTransfer.dropEffect = 'move';
-  const ql = document.getElementById('quickLinks');
-  ql.classList.add('drag-hover');
-  if (!dragData) return;
-  const idx = getDropIndex(ql, e.clientY, '.quick-link');
-  const children = ql.querySelectorAll('.quick-link');
-  showDropIndicator(ql, children[idx] || null);
-}
 
-function onDragLeaveQuick(e) {
-  const ql = document.getElementById('quickLinks');
-  if (!ql.contains(e.relatedTarget)) {
-    ql.classList.remove('drag-hover');
-    hideDropIndicator();
-  }
-}
 
-function onDropQuick(e) {
-  e.preventDefault();
-  hideDropIndicator();
-  document.getElementById('quickLinks').classList.remove('drag-hover');
-  if (!dragData) return;
-  const ql = document.getElementById('quickLinks');
-  const dropIdx = getDropIndex(ql, e.clientY, '.quick-link');
 
-  if (dragData.type === 'quick') {
-    const link = data.quickLinks.splice(dragData.idx, 1)[0];
-    data.quickLinks.splice(dropIdx, 0, link);
-  } else if (dragData.type === 'card') {
-    const link = data.sections[dragData.si].links[dragData.li];
-    if (!link) return;
-    data.sections[dragData.si].links.splice(dragData.li, 1);
-    var qlItem = { icon: 'svg', name: link.name, url: link.url };
-    if (link.emojiType === 'svg' || link.emojiType === 'img') { qlItem.icon = 'img'; qlItem.emojiData = link.emoji; }
-    data.quickLinks.splice(dropIdx, 0, qlItem);
-  }
-  saveData();
-  render();
-}
+
+
 
 function onDragOverSection(e) {
   e.preventDefault();
