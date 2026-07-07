@@ -2828,11 +2828,11 @@ function checkBackupReminder() {
   if (!el) return;
   var last = parseInt(localStorage.getItem('nav_backup_time') || '0');
   if (!last) {
-    el.innerHTML = '⚠️ 尚未备份 <button class="btn-icon" onclick="exportData();localStorage.setItem('nav_backup_time',Date.now().toString());checkBackupReminder()" style="width:auto;border-radius:10px;padding:4px 12px;font-size:0.7rem;gap:4px;">💾 立即备份</button>';
+    el.innerHTML = '⚠️ 尚未备份 <button class="btn-icon" onclick="exportData();localStorage.setItem(&#39;nav_backup_time&#39;,Date.now().toString());checkBackupReminder()" style="width:auto;border-radius:10px;padding:4px 12px;font-size:0.7rem;gap:4px;">💾 立即备份</button>';
   } else {
     var days = Math.floor((Date.now() - last) / 86400000);
     if (days > 7) {
-      el.innerHTML = '⚠️ 距上次备份已 ' + days + ' 天 <button class="btn-icon" onclick="exportData();localStorage.setItem('nav_backup_time',Date.now().toString());checkBackupReminder()" style="width:auto;border-radius:10px;padding:4px 12px;font-size:0.7rem;gap:4px;">💾 重新备份</button>';
+      el.innerHTML = '⚠️ 距上次备份已 ' + days + ' 天 <button class="btn-icon" onclick="exportData();localStorage.setItem(&#39;nav_backup_time&#39;,Date.now().toString());checkBackupReminder()" style="width:auto;border-radius:10px;padding:4px 12px;font-size:0.7rem;gap:4px;">💾 重新备份</button>';
     } else {
       el.innerHTML = '✅ 最近备份：' + days + ' 天前';
     }
