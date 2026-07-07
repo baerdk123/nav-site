@@ -2825,12 +2825,11 @@ function stopParticles() {
 
 // ===== 启动 =====
 updateLockBtn();
-// 先渲染，然后从云端拉取覆盖
-render();
-setTimeout(checkAllSites, 500);
-setInterval(checkAllSites, 60000);
+// 先等云端数据，再渲染
 restoreFromCloudAuto(function() {
   render();
+  setTimeout(checkAllSites, 500);
+  setInterval(checkAllSites, 60000);
 });
 // 每60秒从云端拉取最新数据，实现多设备自动同步
 var _lastCloudData = '';
