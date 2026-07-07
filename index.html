@@ -1085,26 +1085,7 @@ const DEFAULT_DATA = {
       ]
     }
   ],
-  quickLinks: [
-    { icon: 'svg', name: '百度', url: 'https://www.baidu.com' },
-    { icon: 'svg', name: 'Google', url: 'https://www.google.com' },
-    { icon: 'svg', name: 'GitHub', url: 'https://github.com' },
-    { icon: 'svg', name: '微博', url: 'https://weibo.com' },
-    { icon: 'svg', name: '知乎', url: 'https://www.zhihu.com' },
-    { icon: 'svg', name: 'B站', url: 'https://www.bilibili.com' },
-    { icon: 'svg', name: '小红书', url: 'https://www.xiaohongshu.com' },
-    { icon: 'svg', name: '189邮箱', url: 'https://mail.189.cn' },
-    { icon: 'svg', name: '青柠', url: 'https://www.limestart.cn' },
-    { icon: 'svg', name: 'DeepSeek', url: 'https://platform.deepseek.com/api_keys' },
-    { icon: 'svg', name: 'Hermes', url: 'https://hermes-agent.nousresearch.com' },
-    { icon: 'svg', name: 'Yandex', url: 'https://yandex.com' },
-    { icon: 'svg', name: '126邮箱', url: 'https://mail.126.com' },
-    { icon: 'svg', name: '青禾导航', url: 'https://www.qinghedaohang.com' },
-    { icon: 'svg', name: 'SeedHub', url: 'https://seeduck.cc' },
-    { icon: 'svg', name: 'YouTube', url: 'https://www.youtube.com' },
-    { icon: 'svg', name: '游戏下载', url: 'https://xzba.cc' },
-    { icon: 'svg', name: '夸克网盘', url: 'https://pan.quark.cn' }
-  ]
+  quickLinks: quickLinks: []
 };
 
 let data = JSON.parse(JSON.stringify(DEFAULT_DATA));
@@ -2884,7 +2865,7 @@ function pollCloudSync() {
     }
   }).catch(function() {});
 }
-setInterval(pollCloudSync, 30000);
+setInterval(pollCloudSync, 90000);
 // 页面可见时立即同步一次
 document.addEventListener('visibilitychange', function() {
   if (!document.hidden) setTimeout(pollCloudSync, 500);
