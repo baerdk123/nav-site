@@ -314,17 +314,7 @@
   .nav-card:hover .drag-handle { opacity: 0.6; cursor: grab; }
   .nav-card .drag-handle:hover { opacity: 1; color: var(--accent); }
 
-  /* ---- 网络状态指示灯 ---- */
-  .nav-card .status-dot {
-    position: absolute; top: 4px; right: 6px;
-    width: 6px; height: 6px; border-radius: 50%;
-    background: #999; opacity: 0.3;
-    transition: background 0.3s, opacity 0.3s;
-  }
-  .nav-card:hover .status-dot { opacity: 0.7; }
-  .status-dot.online { background: #34c759; }
-  /* .status-dot.slow removed */
-  .status-dot.offline { background: #ff3b30; }
+  
 
   /* ---- 分类折叠 & 加密 ---- */
   .section-header { cursor: pointer; user-select: none; }
@@ -1228,7 +1218,7 @@ function render() {
           data-type="card" data-si="${si}" data-li="${li}"
           ondragstart="onDragStart(event)" ondragend="onDragEnd(event)">
         <span class="emoji">${(l.emojiType === 'svg' || l.emojiType === 'img') ? '<img src="' + l.emoji + '" style="width:var(--icon-size,26px);height:var(--icon-size,26px);border-radius:4px;">' : l.emoji}</span>
-        <span class="status-dot" data-url="${l.url}"></span>
+        
         <span class="label">${l.name}</span>
       </a>`
     ).join('');
@@ -2637,20 +2627,7 @@ document.addEventListener('input', function(e) { if (e.target.id === 'notepadCon
 
 // ===== 卡片拖拽排序（鼠标事件）=====
 // ===== 网络状态检测 =====
-function checkAllSites() {
-  document.querySelectorAll('.status-dot').forEach(dot => {
-    const url = dot.dataset.url;
-    if (!url) return;
-    dot.className = 'status-dot';
-    fetch(url, { method: 'HEAD', mode: 'no-cors', signal: AbortSignal.timeout(5000) })
-      .then(function() { dot.className = 'status-dot online'; })
-      .catch(function() {
-        fetch(url, { method: 'GET', mode: 'no-cors', signal: AbortSignal.timeout(5000) })
-          .then(function() { dot.className = 'status-dot online'; })
-          .catch(function() { dot.className = 'status-dot offline'; });
-      });
-  });
-}
+
 
 // ===== 粒子 =====
 var _particleRunning = false;
@@ -2728,8 +2705,6 @@ function stopParticles() {
 updateLockBtn();
 // 先从 localStorage 渲染，再等云端数据覆盖
 render();
-setTimeout(checkAllSites, 500);
-setInterval(checkAllSites, 60000);
 restoreFromCloudAuto(function() {
   render();
 });
