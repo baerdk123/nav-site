@@ -1,33 +1,160 @@
 {
-  "title": "🌈 我的导航",
-  "subtitle": "常用网址 · 一键直达",
+  "title": "人若不为形所困  ・  眼前便是大罗天",
+  "subtitle": "",
   "sections": [
-    {
-      "id": "movies",
-      "name": "🎬 影视娱乐",
-      "cssClass": "section-movies",
-      "links": [
-        { "emoji": "🎥", "name": "低端影视", "url": "https://www.ddys.diy" },
-        { "emoji": "🐱", "name": "网飞猫", "url": "https://www.ncat21.com" },
-        { "emoji": "🎬", "name": "剧OK", "url": "https://juok.cc" },
-        { "emoji": "🌾", "name": "青禾影视", "url": "https://tv.qhdaohang.cn" },
-        { "emoji": "🍉", "name": "51吃瓜", "url": "https://cg51.com" },
-        { "emoji": "🍋", "name": "Lemon Live", "url": "https://lemonlive.deno.dev/huya" },
-        { "emoji": "☁️", "name": "云影", "url": "https://static.yuny.cc/publish.html" },
-        { "emoji": "🆓", "name": "免费影视", "url": "https://mianfei22.com" },
-        { "emoji": "📺", "name": "B站", "url": "https://www.bilibili.com" },
-        { "emoji": "🌰", "name": "SeedHub", "url": "https://seeduck.cc" },
-        { "emoji": "🎧", "name": "听友FM", "url": "https://tingyou.fm" }
-      ]
-    },
     {
       "id": "selfhost",
       "name": "🖥️ 自建服务",
       "cssClass": "section-selfhost",
       "links": [
-        { "emoji": "⚡", "name": "养殖OA", "url": "http://120.46.93.116:8081/wui/index.html#/main/workflow/listMine?menuIds=1,14&menuPathIds=1,14&_key=z3b60q" },
-        { "emoji": "🏢", "name": "集团OA", "url": "http://36.135.104.106:8081/wui/index.html?v=1766026365842#/?_key=rf0mv4" },
-        { "emoji": "💻", "name": "NCC", "url": "http://123.249.78.126:9080/nccloud/resources/workbench/public/common/main/index.html#/" }
+        {
+          "emoji": "🏢",
+          "name": "集团OA",
+          "url": "http://36.135.104.106:8081/wui/index.html?v=1766026365842#/?_key=rf0mv4"
+        },
+        {
+          "emoji": "⚡",
+          "name": "养殖OA",
+          "url": "http://120.46.93.116:8081/wui/index.html#/main/workflow/listMine?menuIds=1,14&menuPathIds=1,14&_key=z3b60q"
+        },
+        {
+          "emoji": "💻",
+          "name": "NCC",
+          "url": "http://123.249.78.126:9080/nccloud/resources/workbench/public/common/main/index.html#/"
+        },
+        {
+          "emoji": "🔗",
+          "name": "126邮箱",
+          "url": "https://mail.126.com",
+          "emojiType": "img"
+        },
+        {
+          "emoji": "🔗",
+          "name": "企业信用信息查询",
+          "url": "https://shiming.gsxt.gov.cn/socialuser-use-rllogin.html",
+          "emojiType": "img"
+        },
+        {
+          "emoji": "🔗",
+          "name": "发票查验",
+          "url": "https://inv-veri.chinatax.gov.cn/",
+          "emojiType": "img"
+        },
+        {
+          "emoji": "🔗",
+          "name": "公告",
+          "url": "https://www.ckjn.net/news/5.html",
+          "emojiType": "img"
+        },
+        {
+          "emoji": "🔗",
+          "name": "青花瓷",
+          "url": "https://sales.ccckjn.net/B2/pub/Login.aspx?ReturnUrl=%2fB2%2fdefault.aspx&uid=638918901615400390",
+          "emojiType": "img"
+        },
+        {
+          "emoji": "🔗",
+          "name": "电子税务局",
+          "url": "https://etax.jilin.chinatax.gov.cn:8443/loginb/",
+          "emojiType": "img"
+        },
+        {
+          "emoji": "🔗",
+          "name": "抖音店铺后台",
+          "url": "https://fxg.jinritemai.com/login/common",
+          "emojiType": "img"
+        },
+        {
+          "emoji": "🔗",
+          "name": "京东店铺后台",
+          "url": "https://shop.jd.com/jdm/home/",
+          "emojiType": "img"
+        },
+        {
+          "emoji": "🔗",
+          "name": "1688店铺后台",
+          "url": "https://work.1688.com/?tracelog=login_target_is_blank_1688",
+          "emojiType": "img"
+        },
+        {
+          "emoji": "🔗",
+          "name": "淘宝店铺后台",
+          "url": "https://login.taobao.com/member/login.jhtml?redirectURL=http%3A%2F%2Fmai.taobao.com%2Fseller_admin.htm%3Fspm%3Da211oj.28002752.a2226mz.15.336c515bcSGsN6",
+          "emojiType": "img"
+        },
+        {
+          "emoji": "🔗",
+          "name": "长农臻选（zhanghu03）",
+          "url": "https://wx.ccckwy.cn/shop/login/login.html",
+          "emojiType": "img"
+        },
+        {
+          "emoji": "🔗",
+          "name": "微信小店",
+          "url": "https://store.weixin.qq.com/shop",
+          "emojiType": "img"
+        },
+        {
+          "emoji": "🔗",
+          "name": "思迅商旗",
+          "url": "http://116.205.113.104:8032/MainPage/MainFrame.aspx",
+          "emojiType": "img"
+        },
+        {
+          "emoji": "🔗",
+          "name": "思迅pay",
+          "url": "https://mch.sixunyun.com.cn/Main/Home",
+          "emojiType": "img"
+        },
+        {
+          "emoji": "🔗",
+          "name": "知了课堂",
+          "url": "https://www.zlketang.com/",
+          "emojiType": "img"
+        }
+      ]
+    },
+    {
+      "id": "movies",
+      "name": "🎬 影视娱乐",
+      "cssClass": "section-movies",
+      "links": [
+        {
+          "emoji": "🔗",
+          "name": "YouTube",
+          "url": "https://www.youtube.com",
+          "emojiType": "img"
+        },
+        {
+          "emoji": "🔗",
+          "name": "Bilibili",
+          "url": "https://www.bilibili.com",
+          "emojiType": "img"
+        },
+        {
+          "emoji": "🔗",
+          "name": "SeedHub",
+          "url": "https://seeduck.cc",
+          "emojiType": "img"
+        },
+        {
+          "emoji": "🔗",
+          "name": "听友FM",
+          "url": "https://tingyou.fm",
+          "emojiType": "img"
+        },
+        {
+          "emoji": "🔗",
+          "name": "抖音",
+          "url": "https://www.douyin.com",
+          "emojiType": "img"
+        },
+        {
+          "emoji": "🔗",
+          "name": "小红书",
+          "url": "https://www.xiaohongshu.com",
+          "emojiType": "img"
+        }
       ]
     },
     {
@@ -35,12 +162,66 @@
       "name": "🔧 工具资源",
       "cssClass": "section-tools",
       "links": [
-        { "emoji": "🎮", "name": "游戏下载吧", "url": "https://xzba.cc" },
-        { "emoji": "🛠️", "name": "KuKuTool", "url": "https://dy.kukutool.com" },
-        { "emoji": "🧰", "name": "刘明野工具箱", "url": "https://tool.liumingye.cn" },
-        { "emoji": "☁️", "name": "良心云", "url": "https://xn--9kqz23b19z.com/#/dashboard" },
-        { "emoji": "☁️", "name": "嗨云", "url": "https://cloud.hysoon.com/account/logon?fromUrl=/fkdevice/index" },
-        { "emoji": "🏠", "name": "青禾导航", "url": "https://www.qinghedaohang.com" }
+        {
+          "emoji": "🏠",
+          "name": "青禾导航",
+          "url": "https://www.qinghedaohang.com"
+        },
+        {
+          "emoji": "🧰",
+          "name": "刘明野工具箱",
+          "url": "https://tool.liumingye.cn"
+        },
+        {
+          "emoji": "🐙",
+          "name": "GitHub",
+          "url": "https://github.com"
+        },
+        {
+          "emoji": "📦",
+          "name": "夸克网盘",
+          "url": "https://pan.quark.cn/list#/list/all"
+        },
+        {
+          "emoji": "🎮",
+          "name": "游戏下载吧",
+          "url": "https://xzba.cc"
+        },
+        {
+          "emoji": "🔗",
+          "name": "KuKuTool",
+          "url": "https://dy.kukutool.com",
+          "emojiType": "img"
+        },
+        {
+          "emoji": "🔗",
+          "name": "良心云",
+          "url": "https://xn--9kqz23b19z.com/#/dashboard",
+          "emojiType": "img"
+        },
+        {
+          "emoji": "🔗",
+          "name": "浩顺",
+          "url": "https://cloud.hysoon.com/account/logon?fromUrl=/fkdevice/index",
+          "emojiType": "img"
+        },
+        {
+          "emoji": "🔗",
+          "name": "Loc567",
+          "url": "https://www.loc567.com"
+        },
+        {
+          "emoji": "🔗",
+          "name": "阿里巴巴矢量图标库",
+          "url": "https://www.iconfont.cn/",
+          "emojiType": "img"
+        },
+        {
+          "emoji": "🔗",
+          "name": "百度网盘",
+          "url": "https://pan.baidu.com/",
+          "emojiType": "img"
+        }
       ]
     },
     {
@@ -48,52 +229,89 @@
       "name": "🤖 AI & 开发",
       "cssClass": "section-dev",
       "links": [
-        { "emoji": "🤖", "name": "Hermes Agent", "url": "https://hermes-agent.nousresearch.com" },
-        { "emoji": "🧠", "name": "DeepSeek平台", "url": "https://platform.deepseek.com/api_keys" },
-        { "emoji": "📊", "name": "DeepSeek用量", "url": "https://platform.deepseek.com/usage" },
-        { "emoji": "🎵", "name": "Apple Music", "url": "https://music.apple.com/cn/library/songs" }
-      ]
+        {
+          "emoji": "🔗",
+          "name": "Hermes Agent",
+          "url": "https://hermes-agent.nousresearch.com",
+          "emojiType": "svg"
+        },
+        {
+          "emoji": "🧠",
+          "name": "DeepSeek平台 API",
+          "url": "https://platform.deepseek.com/api_keys"
+        },
+        {
+          "emoji": "🔗",
+          "name": "豆包",
+          "url": "https://www.doubao.com/chat",
+          "emojiType": "img"
+        }
+      ],
+      "locked": false
     },
     {
       "id": "pn",
       "name": "🔞 PN",
       "cssClass": "section-pn",
       "links": [
-        { "emoji": "🎬", "name": "GGJAV", "url": "https://ggjav.com/member/login?redirect=/main/my_list" },
-        { "emoji": "🔞", "name": "91CG", "url": "https://91cg8.com/" },
-        { "emoji": "📺", "name": "PornHub", "url": "https://www.pornhub.com" },
-        { "emoji": "🐦", "name": "X", "url": "https://x.com" }
-      ]
-    },
-    {
-      "id": "social",
-      "name": "📱 社交娱乐",
-      "cssClass": "section-social",
-      "links": [
-        { "emoji": "📕", "name": "小红书", "url": "https://www.xiaohongshu.com" },
-        { "emoji": "▶️", "name": "YouTube", "url": "https://www.youtube.com" },
-        { "emoji": "🎵", "name": "抖音", "url": "https://www.douyin.com" }
-      ]
+        {
+          "emoji": "🎬",
+          "name": "GGJAV",
+          "url": "https://ggjav.com/member/login?redirect=/main/my_list"
+        },
+        {
+          "emoji": "🔗",
+          "name": "91CG",
+          "url": "https://gitlab.com/91cg666/91cg",
+          "emojiType": "img"
+        },
+        {
+          "emoji": "📺",
+          "name": "PornHub",
+          "url": "https://www.pornhub.com"
+        },
+        {
+          "emoji": "🔗",
+          "name": "X",
+          "url": "https://x.com",
+          "emojiType": "svg"
+        },
+        {
+          "emoji": "🔗",
+          "name": "收藏",
+          "url": "https://docs.qq.com/doc/DSU5meFFRaVVtaUZL",
+          "emojiType": "img"
+        },
+        {
+          "emoji": "🔗",
+          "name": "Telegram",
+          "url": "https://web.telegram.org/a/",
+          "emojiType": "img"
+        }
+      ],
+      "password": "...",
+      "locked": true
     }
   ],
-  "quickLinks": [
-    { "icon": "svg", "name": "百度", "url": "https://www.baidu.com" },
-    { "icon": "svg", "name": "Google", "url": "https://www.google.com" },
-    { "icon": "svg", "name": "GitHub", "url": "https://github.com" },
-    { "icon": "svg", "name": "微博", "url": "https://weibo.com" },
-    { "icon": "svg", "name": "知乎", "url": "https://www.zhihu.com" },
-    { "icon": "svg", "name": "B站", "url": "https://www.bilibili.com" },
-    { "icon": "svg", "name": "小红书", "url": "https://www.xiaohongshu.com" },
-    { "icon": "svg", "name": "189邮箱", "url": "https://mail.189.cn" },
-    { "icon": "svg", "name": "青柠", "url": "https://www.limestart.cn" },
-    { "icon": "svg", "name": "DeepSeek", "url": "https://platform.deepseek.com/api_keys" },
-    { "icon": "svg", "name": "Hermes", "url": "https://hermes-agent.nousresearch.com" },
-    { "icon": "svg", "name": "Yandex", "url": "https://yandex.com" },
-    { "icon": "svg", "name": "126邮箱", "url": "https://mail.126.com" },
-    { "icon": "svg", "name": "青禾导航", "url": "https://www.qinghedaohang.com" },
-    { "icon": "svg", "name": "SeedHub", "url": "https://seeduck.cc" },
-    { "icon": "svg", "name": "YouTube", "url": "https://www.youtube.com" },
-    { "icon": "svg", "name": "游戏下载", "url": "https://xzba.cc" },
-    { "icon": "svg", "name": "夸克网盘", "url": "https://pan.quark.cn" }
-  ]
+  "quickLinks": [],
+  "searchEngines": [
+    {
+      "id": "bing",
+      "name": "Bing",
+      "url": "https://www.bing.com/search"
+    },
+    {
+      "id": "google",
+      "name": "Google",
+      "url": "https://www.google.com/search"
+    },
+    {
+      "id": "yandex",
+      "name": "Yandex",
+      "url": "https://yandex.com/search"
+    }
+  ],
+  "settingsPassword": "3.0",
+  "widthAuto": true,
+  "iconSize": 32
 }
